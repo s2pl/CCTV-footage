@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Empowerverse</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            text-align: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: 2px solid #007bff;
+        }
+        .logo {
+            max-width: 80px;
+            height: auto;
+            margin: 0 auto 15px;
+            object-fit: contain;
+            display: block;
+        }
+        .content {
+            padding: 30px;
+            background-color: #ffffff;
+            text-align: left;
+        }
+        .welcome-title {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        p {
+            margin: 10px 0;
+            color: #4a5568;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+        .signature {
+            margin-top: 30px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            border-top: 1px solid #eaeaea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img 
+                src="https://api.createathon.co/media/logo/logo.png" 
+                alt="Createathon" 
+                class="logo"
+                onerror="this.onerror=null; this.src='{{ logo_url }}';"
+            >
+        </div>
+        <div class="content">
+            <h2 class="welcome-title">Welcome to Createathon!</h2>
+            <p class="greeting">Dear {{ fullname }},</p>
+            <p>Thank you for joining our platform. We're excited to have you on board!</p>
+            <p>If you have any questions, feel free to reach out to our support team.</p>
+            <div class="signature">
+                <p>Best regards,<br>Your Team</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This is an automated message, please do not reply directly to this email.</p>
+            <p>© {% now "Y" %} Createathon. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

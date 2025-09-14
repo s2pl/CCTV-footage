@@ -1,0 +1,515 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Createathon – You're In!</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0D0D0D;font-family:Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <tr>
+      <td align="center" style="padding:40px 0;">
+        <!-- Card with accent border -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="border:4px solidrgba(218, 210, 255, 0.41);border-radius:16px;overflow:hidden;box-shadow:0 12px 36px rgba(216, 255, 189, 0.63);">
+          
+          <!-- HERO -->
+          <tr>
+            <td align="center"
+                style="
+                  background:linear-gradient(135deg,#6C43D0,#8A70FF);
+                  padding:80px 20px;
+                  text-align:center;
+                  color:#FFFFFF;
+                ">
+              <img
+                src="https://res.cloudinary.com/dkv5f69sj/image/upload/v1746215254/logo_vyclyo.png"
+                alt="Createathon Logo"
+                width="80"
+                style="display:block;margin:0 auto 30px;"
+              />
+              <h1 style="margin:0;font-size:48px;letter-spacing:2px;line-height:1.1;">
+                🎉 YOU'RE IN! 🎉
+              </h1>
+              <p style="margin:10px 0 0;font-size:20px;opacity:0.9;">
+                Welcome to the Createathon family
+              </p>
+            </td>
+          </tr>
+          
+          <!-- BODY -->
+          <tr>
+            <td style="background-color:#1E1E1E;color:#E0E0E0;padding:50px 40px;line-height:1.6;">
+              <p style="font-size:20px;margin-bottom:20px;">
+                <strong>Congratulations, {{ name|default:"Creator" }}!</strong><br>
+                You've been hand-picked as a Content Creator at <span style="color:#8A70FF;">Createathon</span>. Your creativity truly stood out.
+              </p>
+              
+              <p style="font-size:17px;color:#DDDDDD;margin-bottom:35px;">
+                <strong>Next Step:</strong> Join our <span style="color:#6C43D0;">21-Day Creator Challenge</span>—a no-fee trial to supercharge your reach & engagement.
+              </p>
+              
+              <!-- Steps Icons Row -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:45px;">
+                <tr>
+                  <td align="center" style="width:33%;padding:10px;">
+                    <div style="font-size:36px;">🗓️</div>
+                    <p style="margin:8px 0 0;font-size:16px;color:#FFFFFF;">21 Days</p>
+                  </td>
+                  <td align="center" style="width:33%;padding:10px;">
+                    <div style="font-size:36px;">🎬</div>
+                    <p style="margin:8px 0 0;font-size:16px;color:#FFFFFF;">Create Content</p>
+                  </td>
+                  <td align="center" style="width:33%;padding:10px;">
+                    <div style="font-size:36px;">🚀</div>
+                    <p style="margin:8px 0 0;font-size:16px;color:#FFFFFF;">Unlock Rewards</p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- CTA BUTTON -->
+              <div style="text-align:center;margin-bottom:55px;">
+                <a href="https://t.me/createathon"
+                   style="
+                     background:linear-gradient(135deg,#8A70FF,#6C43D0);
+                     color:#FFFFFF;
+                     text-decoration:none;
+                     padding:18px 40px;
+                     font-size:20px;
+                     font-weight:bold;
+                     border-radius:8px;
+                     display:inline-block;
+                     box-shadow:0 8px 24px rgba(0,0,0,0.5);
+                     transition:opacity 0.2s;
+                   "
+                   onmouseover="this.style.opacity=0.85;"
+                   onmouseout="this.style.opacity=1;">
+                  ⭐ Join Our Community ⭐
+                </a>
+              </div>
+              
+              <!-- FOUNDER VIDEO -->
+              <p style="font-size:17px;color:#DDDDDD;margin-bottom:15px;">
+                🔭 See where we're heading—watch a quick note from our founder, Jack Jay:
+              </p>
+              <div style="text-align:center;">
+                <a href="https://www.loom.com/share/bebe5370a25c44d290d38574ff5635dd?sid=60172c37-0d2f-4618-ba81-7532168e4bd4"
+                   style="
+                     background:linear-gradient(145deg,#6C43D0,#8A70FF);
+                     color:#FFFFFF;
+                     text-decoration:none;
+                     padding:16px 36px;
+                     font-size:17px;
+                     font-weight:bold;
+                     border-radius:6px;
+                     box-shadow:0 5px 16px rgba(0,0,0,0.3);
+                     display:inline-block;
+                   ">
+                  ▶ Watch Founder's Message
+                </a>
+              </div>
+            </td>
+          </tr>
+          
+          <!-- FOOTER NOTE -->
+          <tr>
+            <td style="background-color:#121212;padding:20px;text-align:center;font-size:12px;color:#777777;">
+              This message was auto-generated. You'll hear from us in 3–7 business days.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+ {% endcomment %}
+
+
+
+
+
+
+
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Createathon – Welcome Aboard</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0d0d0d;color:#e0e0e0;font-family:Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <tr>
+      <td align="center" style="padding:50px 0;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background:linear-gradient(145deg,#1a1a1a,#242424);border-radius:12px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,0.6);">
+          
+          <!-- CONFETTI TOP -->
+          <tr>
+            <td align="center" style="font-size:32px;line-height:1;padding:20px 0;">
+              🎉✨🌟🎊✨🎉
+            </td>
+          </tr>
+
+          <!-- HERO / HEADER -->
+          <tr>
+            <td align="center" style="background:linear-gradient(135deg,#6c43d0,#8a70ff);padding:40px 20px;line-height:1.2;">
+              <!-- Logo Image -->
+              <img
+                src="https://res.cloudinary.com/dkv5f69sj/image/upload/v1746215254/logo_vyclyo.png"
+                alt="Createathon Logo"
+                width="100"
+                style="display:block;margin:0 auto 20px;"
+              />
+              <h1 style="color:#fff;font-size:32px;margin:0;font-weight:bold;">🎉 YOU'RE IN! 🎉</h1>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="padding:40px 40px 60px;background:#1e1e1e;">
+              <p style="font-size:18px;line-height:1.6;margin-bottom:20px;">
+                <strong>Congratulations, {{ name|default:"Creator" }}!</strong><br>
+                You've been hand-picked as a Content Creator at <span style="color:#8a70ff;">Createathon</span>. Your creativity shone brighter than the rest!
+              </p>
+
+              <p style="font-size:16px;line-height:1.6;margin-bottom:30px;">
+                <strong>Next Step:</strong> Join our <span style="color:#6c43d0;">21-Day Creator Challenge</span>—a no-fee, engagement-powering trial to elevate your content.
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:40px;">
+                <tr>
+                  <td style="background:#121212;padding:20px;border-radius:6px;">
+                    <ul style="margin:0;padding-left:20px;color:#e0e0e0;font-size:16px;line-height:1.6;">
+                      <li>Post regularly on your own channels for 21 days</li>
+                      <li>No extra tasks—just be yourself and create</li>
+                      <li>Build reach & engagement to unlock:</li>
+                    </ul>
+                    <ul style="margin:10px 0 0 40px;padding:0;color:#cccccc;font-size:15px;line-height:1.5;">
+                      <li>💼 Job offer at Createathon</li>
+                      <li>💰 Stipend & bonuses</li>
+                      <li>🤝 Brand deals & collaborations</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA -->
+              <div style="text-align:center;margin-bottom:50px;">
+                <a href="https://t.me/createathon"
+                   style="background:linear-gradient(135deg,#8a70ff,#6c43d0);color:#fff;text-decoration:none;
+                          padding:16px 36px;font-size:18px;font-weight:bold;border-radius:8px;
+                          box-shadow:0 6px 18px rgba(0,0,0,0.4);display:inline-block;">
+                  ⭐ Join Our Community ⭐
+                </a>
+              </div>
+
+              <!-- FOUNDER VIDEO -->
+              <p style="font-size:16px;line-height:1.6;margin-bottom:10px;">
+                Want to see where we're headed? Watch our founder Jack Jay's vision:
+              </p>
+              <div style="text-align:center;">
+                <a href="https://www.loom.com/share/bebe5370a25c44d290d38574ff5635dd?sid=60172c37-0d2f-4618-ba81-7532168e4bd4"
+                   style="background:linear-gradient(145deg,#6c43d0,#8a70ff);color:#fff;text-decoration:none;
+                          padding:14px 32px;font-size:16px;border-radius:6px;font-weight:bold;
+                          box-shadow:0 4px 12px rgba(0,0,0,0.3);display:inline-block;">
+                  ▶ Watch Founder's Message
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#121212;padding:20px;text-align:center;font-size:12px;color:#777;">
+              This message was auto-generated. You'll hear from us in 3–7 business days.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html> {% endcomment %}
+
+
+
+
+
+
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% load static %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Createathon – Welcome Aboard</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="border-collapse: collapse"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              background-color: #1e1e1e;
+              border-radius: 8px;
+              overflow: hidden;
+              margin: 40px 0;
+              border-collapse: collapse;
+            "
+          >
+            <!-- Replace the Inline SVG Logo section -->
+            <tr>
+              <td align="center" style="padding: 40px 0; line-height: 0">
+                <div style="width: 120px; display: inline-block">
+                  <img
+                    src="https://res.cloudinary.com/dkv5f69sj/image/upload/v1746215254/logo_vyclyo.png"
+                    alt="Createathon Logo"
+                    style="width: 100%; height: auto; display: block"
+                  />
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 0 40px">
+                <!-- Headline -->
+                <h1
+                  style="color: #ffffff; font-size: 24px; margin-bottom: 20px"
+                >
+                  Congratulations, {{ name|default:"Creator" }}!
+                </h1>
+
+                <!-- Subject as Email Title -->
+                <h2
+                  style="color: #ffffff; font-size: 20px; margin-bottom: 20px"
+                >
+                  {{ subject }}
+                </h2>
+
+                <!-- Intro -->
+                <p
+                  style="
+                    font-size: 16px;
+                    line-height: 24px;
+                    margin-bottom: 20px;
+                  "
+                >
+                  We are thrilled to welcome you as a Content Creator at
+                  <strong>Createathon</strong>. Your passion and creativity
+                  really stood out!
+                </p>
+
+                <!-- Dynamic Message (if provided) -->
+                {% if message %}
+                <div
+                  style="
+                    font-size: 16px;
+                    line-height: 24px;
+                    margin-bottom: 20px;
+                    padding: 15px;
+                    background-color: #2a2a2a;
+                    border-radius: 6px;
+                  "
+                >
+                  {{ message|safe }}
+                </div>
+                {% endif %}
+
+                <!-- 21-Day Challenge Explanation -->
+                <p
+                  style="font-size: 16px; line-height: 24px; margin-bottom: 5px"
+                >
+                  To get started, join our
+                  <strong>21-Day Creator Challenge</strong>. This is a short,
+                  no-fee trial period for you to showcase your skills:
+                </p>
+                <p
+                  style="
+                    font-size: 16px;
+                    line-height: 22px;
+                    color: #dddddd;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <em
+                    >No charges apply—it's simply a chance for you to shine and
+                    build genuine engagement.</em
+                  >
+                </p>
+
+                <hr style="border-color: #333; margin: 30px 0" />
+
+                <!-- How It Works -->
+                <h2
+                  style="color: #ffffff; font-size: 20px; margin-bottom: 15px"
+                >
+                  How It Works
+                </h2>
+                <ul
+                  style="
+                    font-size: 16px;
+                    line-height: 24px;
+                    color: #e0e0e0;
+                    padding-left: 20px;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <li>
+                    Post content regularly for 21 days on your own social
+                    channels.
+                  </li>
+                  <li>
+                    No need to create anything new for us—just do what you love.
+                  </li>
+                  <li>
+                    If you build reach & engagement, you'll have the chance to:
+                  </li>
+                </ul>
+                <ul
+                  style="
+                    font-size: 16px;
+                    line-height: 24px;
+                    color: #e0e0e0;
+                    padding-left: 40px;
+                    margin-bottom: 30px;
+                  "
+                >
+                  <li>Get hired by us</li>
+                  <li>Earn a stipend</li>
+                  <li>Receive brand deals & collaborations</li>
+                </ul>
+                <p
+                  style="
+                    font-size: 16px;
+                    line-height: 24px;
+                    margin-bottom: 30px;
+                  "
+                >
+                  Ready to turn your passion into a career?
+                </p>
+
+                <!-- Join Community Button -->
+                <div style="text-align: center; margin-bottom: 40px">
+                  <a
+                    href="https://t.me/createathon"
+                    style="
+                      background-color: #6c63ff;
+                      color: #ffffff;
+                      text-decoration: none;
+                      padding: 14px 28px;
+                      border-radius: 4px;
+                      font-size: 16px;
+                      display: inline-block;
+                      font-weight: bold;
+                    "
+                  >
+                    Join Our Community
+                  </a>
+                </div>
+
+                <p
+                  style="
+                    font-size: 16px;
+                    line-height: 22px;
+                    color: #dddddd;
+                    margin-bottom: 40px;
+                  "
+                >
+                  Have questions? Join our Telegram community and our team will
+                  be happy to help!
+                </p>
+
+                <hr style="border-color: #333; margin: 30px 0" />
+
+                <!-- Founder Video -->
+                <p
+                  style="
+                    font-size: 16px;
+                    line-height: 24px;
+                    margin-bottom: 20px;
+                  "
+                >
+                  To learn more about our mission, watch a message from our
+                  founder, Jack Jay:
+                </p>
+                <div style="text-align: center; margin-bottom: 40px">
+                  <a
+                    href="https://www.loom.com/share/bebe5370a25c44d290d38574ff5635dd?sid=60172c37-0d2f-4618-ba81-7532168e4bd4"
+                    style="
+                      background-color: #8a70ff;
+                      color: #ffffff;
+                      text-decoration: none;
+                      padding: 14px 28px;
+                      border-radius: 4px;
+                      font-size: 16px;
+                      display: inline-block;
+                      font-weight: bold;
+                    "
+                  >
+                    Watch Founder's Message
+                  </a>
+                </div>
+
+                <!-- Footer Note -->
+                <p
+                  style="
+                    font-size: 14px;
+                    line-height: 20px;
+                    color: #aaaaaa;
+                    text-align: center;
+                    margin-top: 30px;
+                  "
+                >
+                  This message was auto-generated. You will be contacted within
+                  3–7 business days.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html> {% endcomment %}

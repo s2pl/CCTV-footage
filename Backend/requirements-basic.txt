@@ -1,0 +1,37 @@
+# Ultra-conservative requirements for old Ubuntu servers
+# Only the most essential packages with proven compatibility
+
+# Core Django Framework - Essential
+Django==3.2.25
+djangorestframework==3.14.0
+djangorestframework_simplejwt==4.4.0
+django-cors-headers==3.10.1
+
+# Database - Essential
+psycopg2-binary==2.8.6
+
+# Authentication and Security - Essential
+PyJWT==2.4.0
+passlib==1.7.4
+
+# HTTP clients - Essential
+requests==2.25.1
+urllib3==1.26.5
+
+# Environment and Configuration - Essential
+python-dotenv==0.19.0
+PyYAML==5.4.1
+
+# Utilities - Essential
+python-dateutil==2.8.2
+pytz==2021.3
+six==1.16.0
+sqlparse==0.4.2
+
+# Development and Compatibility - Essential
+certifi==2021.10.8
+charset-normalizer==2.0.12
+idna==3.3
+
+# Text Processing - Essential
+colorama==0.4.4

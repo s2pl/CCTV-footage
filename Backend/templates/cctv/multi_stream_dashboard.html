@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCTV Multi-Camera Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .header {
+            background: #2d2d2d;
+            padding: 1rem 2rem;
+            border-bottom: 2px solid #4a90e2;
+        }
+        
+        .header h1 {
+            color: #4a90e2;
+            font-size: 2rem;
+        }
+        
+        .controls {
+            background: #2d2d2d;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #444;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #4a90e2;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #357abd;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .dashboard {
+            padding: 2rem;
+        }
+        
+        .camera-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .camera-card {
+            background: #2d2d2d;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .camera-header {
+            background: #3d3d3d;
+            padding: 1rem;
+            border-bottom: 1px solid #444;
+        }
+        
+        .camera-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .camera-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        .status-online {
+            background: #28a745;
+        }
+        
+        .status-offline {
+            background: #dc3545;
+        }
+        
+        .status-streaming {
+            background: #4a90e2;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-error {
+            background: #ffc107;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .camera-stream {
+            position: relative;
+            background: #000;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stream-placeholder {
+            text-align: center;
+            color: #666;
+        }
+        
+        .stream-placeholder .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .camera-stream img, .camera-stream video {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+        }
+        
+        .stream-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .camera-controls {
+            padding: 1rem;
+            background: #3d3d3d;
+            border-top: 1px solid #444;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .select {
+            padding: 0.5rem;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #2d2d2d;
+            color: white;
+            min-width: 120px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4a90e2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #dc3545;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            background: #28a745;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .warning {
+            background: #ffc107;
+            color: #000;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .stats {
+            background: #2d2d2d;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #444;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        
+        .stat-label {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .stream-type-selector {
+            background: #3d3d3d;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #444;
+        }
+        
+        .stream-type-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stream-tab {
+            padding: 0.5rem 1rem;
+            background: #2d2d2d;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .stream-tab.active {
+            background: #4a90e2;
+            border-color: #4a90e2;
+        }
+        
+        .stream-tab:hover {
+            background: #555;
+        }
+        
+        .http-stream-info {
+            background: #2d2d2d;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .auth-section {
+            background: #2d2d2d;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #444;
+        }
+        
+        .auth-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .auth-input {
+            padding: 0.5rem;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #3d3d3d;
+            color: white;
+            min-width: 200px;
+        }
+        
+        .auth-status {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .auth-status.authenticated {
+            background: #28a745;
+            color: white;
+        }
+        
+        .auth-status.unauthenticated {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎥 CCTV Multi-Camera Dashboard</h1>
+    </div>
+    
+    <div class="auth-section">
+        <div class="auth-form">
+            <input type="email" id="email-input" class="auth-input" placeholder="Email" value="admin@admin.com">
+            <input type="password" id="password-input" class="auth-input" placeholder="Password" value="@Rishi21">
+            <button class="btn btn-primary" onclick="authenticate()">🔐 Login</button>
+            <div id="auth-status" class="auth-status unauthenticated">Not Authenticated</div>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" id="total-cameras">0</div>
+                <div class="stat-label">Total Cameras</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="online-cameras">0</div>
+                <div class="stat-label">Online Cameras</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="streaming-cameras">0</div>
+                <div class="stat-label">Active Streams</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stream-type-selector">
+        <div class="stream-type-tabs">
+            <div class="stream-tab active" onclick="switchStreamType('mjpeg')">MJPEG Streaming</div>
+            <div class="stream-tab" onclick="switchStreamType('http')">HTTP Streaming</div>
+        </div>
+        <div id="http-stream-info" class="http-stream-info" style="display: none;">
+            <strong>HTTP Streaming Mode:</strong> Uses direct HTTP requests to fetch frames at regular intervals.<br>
+            <strong>Advantages:</strong> Better compatibility, no MJPEG issues<br>
+            <strong>Disadvantages:</strong> Higher bandwidth usage, less smooth
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <button class="btn btn-primary" onclick="refreshDashboard()">🔄 Refresh Dashboard</button>
+            <button class="btn btn-success" onclick="startAllStreams()">▶️ Start All Streams</button>
+            <button class="btn btn-danger" onclick="stopAllStreams()">⏹️ Stop All Streams</button>
+            <button class="btn btn-warning" onclick="captureAllSnapshots()">📸 Capture All Snapshots</button>
+            <button class="btn btn-primary" onclick="testAllConnections()">🔌 Test All Connections</button>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div>Loading dashboard...</div>
+    </div>
+    
+    <div class="dashboard">
+        <div class="camera-grid" id="camera-grid">
+            <!-- Camera cards will be populated here -->
+        </div>
+    </div>
+    
+    <script>
+        let cameras = [];
+        let activeStreams = {};
+        let currentStreamType = 'mjpeg';
+        let httpStreamIntervals = {};
+        let authToken = null;
+        let isAuthenticated = false;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try to authenticate automatically with provided credentials
+            authenticate();
+        });
+        
+        // Authenticate with the server
+        async function authenticate() {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            
+            try {
+                const response = await fetch('http://localhost:8000/v0/api/token/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.access;
+                    isAuthenticated = true;
+                    
+                    // Update UI
+                    document.getElementById('auth-status').textContent = 'Authenticated';
+                    document.getElementById('auth-status').className = 'auth-status authenticated';
+                    
+                    // Load dashboard
+                    refreshDashboard();
+                    
+                    showSuccess('Authentication successful!');
+                } else {
+                    throw new Error(`Authentication failed: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Authentication error:', error);
+                showError('Authentication failed: ' + error.message);
+                
+                // Update UI
+                document.getElementById('auth-status').textContent = 'Authentication Failed';
+                document.getElementById('auth-status').className = 'auth-status unauthenticated';
+            }
+        }
+        
+        // Switch between streaming types
+        function switchStreamType(type) {
+            currentStreamType = type;
+            
+            // Update tab styling
+            document.querySelectorAll('.stream-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show/hide HTTP info
+            document.getElementById('http-stream-info').style.display = type === 'http' ? 'block' : 'none';
+            
+            // Stop all current streams
+            stopAllStreams();
+            
+            // Refresh dashboard
+            refreshDashboard();
+        }
+        
+        // Refresh dashboard data
+        async function refreshDashboard() {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch('http://localhost:8000/v0/api/cctv/cameras/multi-stream/', {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    cameras = data.cameras || [];
+                    
+                    updateStats(data);
+                    renderCameraGrid();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard:', error);
+                showError('Failed to load dashboard: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Update statistics
+        function updateStats(data) {
+            document.getElementById('total-cameras').textContent = data.total_cameras || 0;
+            document.getElementById('online-cameras').textContent = data.online_cameras || 0;
+            document.getElementById('streaming-cameras').textContent = data.streaming_cameras || 0;
+        }
+        
+        // Render camera grid
+        function renderCameraGrid() {
+            const grid = document.getElementById('camera-grid');
+            grid.innerHTML = '';
+            
+            if (cameras.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: #666;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">📹</div>
+                        <div style="font-size: 1.5rem; margin-bottom: 1rem;">No cameras found</div>
+                        <div>Add cameras to get started</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            cameras.forEach(camera => {
+                const card = createCameraCard(camera);
+                grid.appendChild(card);
+            });
+        }
+        
+        // Create camera card
+        function createCameraCard(camera) {
+            const card = document.createElement('div');
+            card.className = 'camera-card';
+            card.id = `camera-${camera.camera_id}`;
+            
+            const statusClass = camera.is_streaming ? 'status-streaming' : 
+                              camera.is_online ? 'status-online' : 'status-offline';
+            
+            const statusText = camera.is_streaming ? 'STREAMING' : 
+                             camera.is_online ? 'ONLINE' : 'OFFLINE';
+            
+            card.innerHTML = `
+                <div class="camera-header">
+                    <div class="camera-title">${camera.camera_name}</div>
+                    <div class="camera-status">
+                        <span>
+                            <span class="status-indicator ${statusClass}"></span>
+                            ${statusText}
+                        </span>
+                        <span>${camera.location || 'Unknown Location'}</span>
+                    </div>
+                </div>
+                
+                <div class="camera-stream" id="stream-${camera.camera_id}">
+                    <div class="stream-placeholder">
+                        <div class="icon">📹</div>
+                        <div>Click "Start Stream" to view live feed</div>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            ${camera.rtsp_url}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="camera-controls">
+                    <div class="control-row">
+                        <select class="select" id="quality-${camera.camera_id}">
+                            ${camera.supported_qualities.map(q => 
+                                `<option value="${q}">${q.toUpperCase()} Stream</option>`
+                            ).join('')}
+                        </select>
+                        <button class="btn btn-success" onclick="startStream('${camera.camera_id}')">
+                            ▶️ Start Stream
+                        </button>
+                        <button class="btn btn-danger" onclick="stopStream('${camera.camera_id}')">
+                            ⏹️ Stop Stream
+                        </button>
+                    </div>
+                    <div class="control-row">
+                        <button class="btn btn-primary" onclick="captureSnapshot('${camera.camera_id}')">
+                            📸 Snapshot
+                        </button>
+                        <button class="btn btn-primary" onclick="getStreamInfo('${camera.camera_id}')">
+                            ℹ️ Stream Info
+                        </button>
+                        <button class="btn btn-warning" onclick="testConnection('${camera.camera_id}')">
+                            🔌 Test Connection
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Start stream for a camera
+        async function startStream(cameraId) {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            const quality = document.getElementById(`quality-${cameraId}`).value;
+            
+            try {
+                const response = await fetch(`http://localhost:8000/v0/api/cctv/cameras/${cameraId}/activate_stream/?quality=${quality}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess(`Stream started for camera ${data.stream_info.camera_name}`);
+                    
+                    // Update stream display
+                    updateStreamDisplay(cameraId, true);
+                    
+                    // Start streaming based on type
+                    if (currentStreamType === 'mjpeg') {
+                        startMJPEGStream(cameraId, quality);
+                    } else {
+                        startHTTPStream(cameraId, quality);
+                    }
+                    
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error starting stream:', error);
+                showError('Failed to start stream: ' + error.message);
+            }
+        }
+        
+        // Stop stream for a camera
+        async function stopStream(cameraId) {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8000/v0/api/cctv/cameras/${cameraId}/deactivate_stream/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess(`Stream stopped for camera ${data.stream_info.camera_name}`);
+                    
+                    // Update stream display
+                    updateStreamDisplay(cameraId, false);
+                    
+                    // Stop streaming based on type
+                    if (currentStreamType === 'mjpeg') {
+                        stopMJPEGStream(cameraId);
+                    } else {
+                        stopHTTPStream(cameraId);
+                    }
+                    
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error stopping stream:', error);
+                showError('Failed to stop stream: ' + error.message);
+            }
+        }
+        
+        // Start MJPEG stream display
+        function startMJPEGStream(cameraId, quality) {
+            const streamContainer = document.getElementById(`stream-${cameraId}`);
+            
+            // Create img element for MJPEG stream
+            const img = document.createElement('img');
+            img.src = `http://localhost:8000/v0/api/cctv/cameras/${cameraId}/stream/?quality=${quality}`;
+            img.alt = `Live stream from camera ${cameraId}`;
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            img.style.maxHeight = '400px';
+            img.style.objectFit = 'contain';
+            
+            // Clear container and add stream
+            streamContainer.innerHTML = '';
+            streamContainer.appendChild(img);
+            
+            // Add stream overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'stream-overlay';
+            overlay.innerHTML = `MJPEG • ${quality.toUpperCase()}`;
+            streamContainer.appendChild(overlay);
+            
+            // Store reference
+            activeStreams[cameraId] = { type: 'mjpeg', element: img };
+        }
+        
+        // Stop MJPEG stream display
+        function stopMJPEGStream(cameraId) {
+            const streamContainer = document.getElementById(`stream-${cameraId}`);
+            
+            // Clear container and show placeholder
+            streamContainer.innerHTML = `
+                <div class="stream-placeholder">
+                    <div class="icon">📹</div>
+                    <div>Click "Start Stream" to view live feed</div>
+                </div>
+            `;
+            
+            // Remove reference
+            delete activeStreams[cameraId];
+        }
+        
+        // Start HTTP-based streaming
+        function startHTTPStream(cameraId, quality) {
+            const streamContainer = document.getElementById(`stream-${cameraId}`);
+            
+            // Create img element for HTTP stream
+            const img = document.createElement('img');
+            img.alt = `HTTP stream from camera ${cameraId}`;
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            img.style.maxHeight = '400px';
+            img.style.objectFit = 'contain';
+            
+            // Clear container and add stream
+            streamContainer.innerHTML = '';
+            streamContainer.appendChild(img);
+            
+            // Add stream overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'stream-overlay';
+            overlay.innerHTML = `HTTP • ${quality.toUpperCase()}`;
+            streamContainer.appendChild(overlay);
+            
+            // Start HTTP polling
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`http://localhost:8000/v0/api/cctv/cameras/${cameraId}/stream/thumbnail/?quality=${quality}`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + authToken
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        img.src = url;
+                        
+                        // Clean up previous URL
+                        if (img.dataset.previousUrl) {
+                            URL.revokeObjectURL(img.dataset.previousUrl);
+                        }
+                        img.dataset.previousUrl = url;
+                    }
+                } catch (error) {
+                    console.error(`HTTP stream error for camera ${cameraId}:`, error);
+                }
+            }, 100); // 10 FPS
+            
+            // Store reference
+            activeStreams[cameraId] = { type: 'http', element: img, interval: interval };
+            httpStreamIntervals[cameraId] = interval;
+        }
+        
+        // Stop HTTP-based streaming
+        function stopHTTPStream(cameraId) {
+            const streamContainer = document.getElementById(`stream-${cameraId}`);
+            
+            // Clear interval
+            if (httpStreamIntervals[cameraId]) {
+                clearInterval(httpStreamIntervals[cameraId]);
+                delete httpStreamIntervals[cameraId];
+            }
+            
+            // Clear container and show placeholder
+            streamContainer.innerHTML = `
+                <div class="stream-placeholder">
+                    <div class="icon">📹</div>
+                    <div>Click "Start Stream" to view live feed</div>
+                </div>
+            `;
+            
+            // Remove reference
+            delete activeStreams[cameraId];
+        }
+        
+        // Update stream display
+        function updateStreamDisplay(cameraId, isStreaming) {
+            const card = document.getElementById(`camera-${cameraId}`);
+            const statusIndicator = card.querySelector('.status-indicator');
+            const statusText = card.querySelector('.camera-status span:first-child');
+            
+            if (isStreaming) {
+                statusIndicator.className = 'status-indicator status-streaming';
+                statusText.innerHTML = '<span class="status-indicator status-streaming"></span>STREAMING';
+            } else {
+                statusIndicator.className = 'status-indicator status-online';
+                statusText.innerHTML = '<span class="status-indicator status-online"></span>ONLINE';
+            }
+        }
+        
+        // Capture snapshot
+        async function captureSnapshot(cameraId) {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            const quality = document.getElementById(`quality-${cameraId}`).value;
+            
+            try {
+                const response = await fetch(`http://localhost:8000/v0/api/cctv/cameras/${cameraId}/stream/snapshot/?quality=${quality}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess(`Snapshot captured: ${data.snapshot.filename}`);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error capturing snapshot:', error);
+                showError('Failed to capture snapshot: ' + error.message);
+            }
+        }
+        
+        // Get stream info
+        async function getStreamInfo(cameraId) {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8000/v0/api/cctv/cameras/${cameraId}/stream/info/`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess(`Stream Info: ${data.camera_name} - ${data.status}`);
+                    console.log('Stream Info:', data);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error getting stream info:', error);
+                showError('Failed to get stream info: ' + error.message);
+            }
+        }
+        
+        // Test camera connection
+        async function testConnection(cameraId) {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8000/v0/api/cctv/cameras/${cameraId}/test_connection/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess(`Connection test: ${data.message}`);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error testing connection:', error);
+                showError('Failed to test connection: ' + error.message);
+            }
+        }
+        
+        // Start all streams
+        async function startAllStreams() {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            showLoading(true);
+            
+            for (const camera of cameras) {
+                if (camera.is_online && !camera.is_streaming) {
+                    try {
+                        await startStream(camera.camera_id);
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Delay between starts
+                    } catch (error) {
+                        console.error(`Error starting stream for ${camera.camera_name}:`, error);
+                    }
+                }
+            }
+            
+            showLoading(false);
+            refreshDashboard();
+        }
+        
+        // Stop all streams
+        async function stopAllStreams() {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            showLoading(true);
+            
+            for (const camera of cameras) {
+                if (camera.is_streaming) {
+                    try {
+                        await stopStream(camera.camera_id);
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Delay between stops
+                    } catch (error) {
+                        console.error(`Error stopping stream for ${camera.camera_name}:`, error);
+                    }
+                }
+            }
+            
+            showLoading(false);
+            refreshDashboard();
+        }
+        
+        // Capture all snapshots
+        async function captureAllSnapshots() {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            showLoading(true);
+            
+            for (const camera of cameras) {
+                if (camera.is_online) {
+                    try {
+                        await captureSnapshot(camera.camera_id);
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Delay between captures
+                    } catch (error) {
+                        console.error(`Error capturing snapshot for ${camera.camera_name}:`, error);
+                    }
+                }
+            }
+            
+            showLoading(false);
+            showSuccess('All snapshots captured');
+        }
+        
+        // Test all connections
+        async function testAllConnections() {
+            if (!isAuthenticated) {
+                showError('Please authenticate first');
+                return;
+            }
+            
+            showLoading(true);
+            
+            for (const camera of cameras) {
+                try {
+                    await testConnection(camera.camera_id);
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Delay between tests
+                } catch (error) {
+                    console.error(`Error testing connection for ${camera.camera_name}:`, error);
+                }
+            }
+            
+            showLoading(false);
+            showSuccess('All connections tested');
+        }
+        
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.dashboard').insertBefore(errorDiv, document.getElementById('camera-grid'));
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.dashboard').insertBefore(successDiv, document.getElementById('camera-grid'));
+            
+            setTimeout(() => successDiv.remove(), 3000);
+        }
+        
+        function showWarning(message) {
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'warning';
+            warningDiv.textContent = message;
+            document.querySelector('.dashboard').insertBefore(warningDiv, document.getElementById('camera-grid'));
+            
+            setTimeout(() => warningDiv.remove(), 4000);
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (isAuthenticated) {
+                refreshDashboard();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

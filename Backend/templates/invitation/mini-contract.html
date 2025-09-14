@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Createathon – Welcome Aboard</title>
+  <style type="text/css">
+    /* Reset & base styles */
+    body, table, td, p, h1, h2, h3, ul, li { 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+    }
+    img { 
+      display: block; 
+      border: 0; 
+      -ms-interpolation-mode: bicubic;
+    }
+    
+    /* Container sizing */
+    .wrapper { 
+      width: 100%; 
+      table-layout: fixed;
+      background-color: #121212; 
+      padding-bottom: 60px; 
+    }
+    .main { 
+      width: 100% !important; 
+      max-width: 600px; 
+      margin: 0 auto; 
+      background-color: #1E1E1E;
+      border-radius: 16px;
+      border-spacing: 0; 
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .section { 
+      padding: 0 40px;
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(108, 99, 255, 0.2) 0%, rgba(138, 112, 255, 0.6) 50%, rgba(108, 99, 255, 0.2) 100%);
+      margin: 28px 0;
+    }
+    .highlight-box {
+      background-color: #2A2A2A;
+      border-radius: 10px;
+      padding: 20px 25px;
+      margin: 25px 0;
+      border-left: 4px solid #6C63FF;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Typography */
+    h1 { 
+      font-size: 28px; 
+      color: #FFF; 
+      margin-bottom: 24px; 
+      font-weight: 700;
+      line-height: 34px;
+      letter-spacing: -0.5px;
+    }
+    h2 { 
+      font-size: 24px; 
+      color: #FFF; 
+      margin: 28px 0 20px;
+      font-weight: 600;
+      line-height: 30px; 
+      position: relative;
+      padding-left: 16px;
+    }
+    h2:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 4px;
+      background-color: #6C63FF;
+      border-radius: 2px;
+    }
+    p, li { 
+      font-size: 16px; 
+      line-height: 1.7; 
+      color: #E8E8E8; 
+      margin-bottom: 16px;
+    }
+    ul { 
+      padding-left: 24px; 
+      margin-bottom: 25px;
+    }
+    li { 
+      padding-bottom: 10px;
+      position: relative;
+    }
+    li:before {
+      color: #8A70FF;
+      font-weight: bold;
+    }
+    
+    /* Button styles */
+    .button-wrapper {
+      text-align: center;
+      padding: 18px 0;
+      background: linear-gradient(180deg, rgba(108, 99, 255, 0.05) 0%, rgba(108, 99, 255, 0) 100%);
+      margin: 12px 0;
+      border-radius: 10px;
+    }
+    .button {
+      background: linear-gradient(135deg, #6C63FF 0%, #8A70FF 100%); 
+      color: #FFF !important; 
+      text-decoration: none;
+      padding: 16px 36px; 
+      border-radius: 8px;
+      font-size: 17px; 
+      font-weight: 600; 
+      display: inline-block;
+      letter-spacing: 0.5px;
+      transition: all 0.3s;
+      mso-padding-alt: 16px 36px;
+      box-shadow: 0 6px 15px rgba(108, 99, 255, 0.4);
+    }
+    
+    /* Footer */
+    .footer {
+      background-color: #121212;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #333;
+    }
+    .footer p {
+      font-size: 13px;
+      color: #AAAAAA;
+      margin: 0;
+    }
+    
+    /* Links */
+    a {
+      color: #8A70FF;
+      text-decoration: underline;
+      font-weight: 500;
+    }
+    
+    /* Logo section */
+    .logo-section {
+      text-align: center;
+      padding: 40px 0 25px;
+      background: linear-gradient(180deg, rgba(108, 99, 255, 0.1) 0%, rgba(108, 99, 255, 0) 100%);
+    }
+    .logo-container {
+      display: inline-block;
+    }
+    .logo-image {
+      width: 56px;
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+      filter: drop-shadow(0 4px 6px rgba(108, 99, 255, 0.3));
+    }
+    .logo-text {
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 26px;
+      font-weight: bold;
+      color: #FFFFFF;
+      margin-left: 14px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    /* Signature section */
+    .signature {
+      border-top: 1px solid #333;
+      padding-top: 20px;
+      margin-top: 20px;
+    }
+    
+    /* Feature boxes */
+    .feature-container {
+      display: table;
+      width: 100%;
+      margin: 15px 0;
+    }
+    .feature-icon {
+      display: table-cell;
+      vertical-align: top;
+      width: 40px;
+      padding-right: 15px;
+    }
+    .feature-text {
+      display: table-cell;
+      vertical-align: middle;
+    }
+    .icon-circle {
+      background-color: rgba(108, 99, 255, 0.15);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      line-height: 40px;
+      font-size: 18px;
+      color: #8A70FF;
+    }
+
+    /* Mobile responsiveness */
+    @media screen and (max-width: 600px) {
+      .section { 
+        padding: 0 20px !important; 
+      }
+      h1 { 
+        font-size: 24px !important; 
+        line-height: 30px !important;
+        margin-bottom: 20px !important; 
+      }
+      h2 { 
+        font-size: 20px !important; 
+        line-height: 26px !important;
+        margin: 20px 0 15px !important; 
+      }
+      p, li { 
+        font-size: 15px !important; 
+        line-height: 1.6 !important; 
+      }
+      .button {
+        padding: 14px 30px !important;
+        font-size: 16px !important;
+      }
+      .divider {
+        margin: 22px 0 !important;
+      }
+      .highlight-box {
+        padding: 15px 20px !important;
+      }
+    }
+    
+    @media screen and (max-width: 400px) {
+      .section { 
+        padding: 0 15px !important; 
+      }
+      .button {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+  <!--[if mso]>
+  <style type="text/css">
+    .main {border-collapse: collapse !important;}
+    .button {
+      font-weight: bold !important;
+      font-family: Arial, sans-serif !important;
+    }
+  </style>
+  <![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#121212;">
+
+  <!-- Email wrapper -->
+  <div class="wrapper">
+    <!--[if mso]>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#121212">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" bgcolor="#1E1E1E" style="border-radius:16px;overflow:hidden;">
+    <![endif]-->
+    
+    <!--[if !mso]><!-->
+    <table role="presentation" class="main" cellpadding="0" cellspacing="0">
+    <!--<![endif]-->
+      <!-- Logo Header -->
+      <tr>
+        <td class="logo-section">
+          <table role="presentation" class="logo-container" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="text-align: center;">
+            <img src="https://res.cloudinary.com/dkv5f69sj/image/upload/v1746215254/logo_vyclyo.png" alt="Createathon logo" class="logo-image" width="56" style="display: inline-block; vertical-align: middle;" />
+            <span class="logo-text" style="display: inline-block; vertical-align: middle;">
+              Createathon
+            </span>
+          </td>
+        </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Greeting -->
+      <tr>
+        <td class="section">
+          <h1>Dear {{ name|default:"Creator" }},</h1>
+        </td>
+      </tr>
+
+      <!-- Welcome Message -->
+      <tr>
+        <td class="section">
+          <p>Welcome to Createathon! We're pleased to confirm your acceptance into our Creator Development Program. Your application stood out, and we believe you'll be a valuable addition to our community.</p>
+          
+          {% if message %}
+          <div class="highlight-box">
+            {{ message|safe }}
+          </div>
+          {% endif %}
+        </td>
+      </tr>
+
+      <!-- Program Details -->
+      <tr>
+        <td class="section">
+          <h2>Program Details</h2>
+          <p>The program includes:</p>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle">
+                &#10003;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>One-on-one mentoring sessions</strong> with industry experts</p>
+            </div>
+          </div>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle">
+                &#10003;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>Content strategy development</strong> tailored to your niche</p>
+            </div>
+          </div>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle">
+                &#10003;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>Practical training modules</strong> with hands-on exercises</p>
+            </div>
+          </div>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle">
+                &#10003;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>Access to our comprehensive resource library</strong> of tools and templates</p>
+            </div>
+          </div>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle">
+                &#10003;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>Membership in our community</strong> of content creators</p>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="section">
+          <div class="divider"></div>
+        </td>
+      </tr>
+
+      <!-- Post-Program Benefits -->
+      <tr>
+        <td class="section">
+          <h2>Upon Completion</h2>
+          <p>After completing the program, you will receive:</p>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle" style="background-color:rgba(138, 112, 255, 0.15);">
+                &#9733;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>Creator certification</strong> recognized in the industry</p>
+            </div>
+          </div>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle" style="background-color:rgba(138, 112, 255, 0.15);">
+                &#9733;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>Access to our partner network</strong> of brands and agencies</p>
+            </div>
+          </div>
+          
+          <div class="feature-container">
+            <div class="feature-icon">
+              <div class="icon-circle" style="background-color:rgba(138, 112, 255, 0.15);">
+                &#9733;
+              </div>
+            </div>
+            <div class="feature-text">
+              <p style="margin-bottom:8px;"><strong>Potential collaboration opportunities</strong> with other creators</p>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+
+      <!-- CTA Button -->
+      <tr>
+        <td>
+          <div class="button-wrapper">
+            <p style="text-align:center; margin-bottom:18px; color:#E8E8E8; font-size:18px;">Ready to get started?</p>
+            <!--[if mso]>
+            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="#" style="height:50px;v-text-anchor:middle;width:240px;" arcsize="12%" stroke="f" fillcolor="#6C63FF">
+              <w:anchorlock/>
+              <center>
+            <![endif]-->
+            <a href="#" class="button">
+              View Offer Letter
+            </a>
+            <!--[if mso]>
+              </center>
+            </v:roundrect>
+            <![endif]-->
+          </div>
+        </td>
+      </tr>
+
+      <!-- Document Review -->
+      <tr>
+        <td class="section">
+          <div class="highlight-box" style="background-color:#252525;">
+            <p style="margin-bottom:10px;">Please review the attached document for program details. For any questions, contact us at <a href="mailto:invitation@createathon.co">invitation@createathon.co</a>.</p>
+            <p style="margin:0;">We look forward to working with you and helping you reach your creative potential.</p>
+          </div>
+        </td>
+      </tr>
+      <!-- <tr>
+        <td class="section">
+          <div class="divider"></div>
+        </td>
+      </tr> -->
+
+      <!-- Signature -->
+      <tr>
+        <td class="section" style="padding-bottom: 40px;">
+          <div class="signature">
+            <p style="margin:0;">
+              Sincerely,
+            </p>
+            <p style="margin-top:15px; margin-bottom:5px; color:#FFFFFF; font-weight:600; font-size:18px;">
+              Rishikesh Jadhav
+            </p>
+            <p style="margin:0; color:#AAAAAA;">
+              CEO
+            </p>
+            <p style="margin:0; color:#AAAAAA;">
+              Createathon
+            </p>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td class="footer">
+          <p>This is an official communication from Createathon. Please do not reply to this email.</p>
+          <p style="margin-top:10px; font-size:12px;">© 2023 Createathon. All rights reserved.</p>
+        </td>
+      </tr>
+    </table>
+    <!--[if mso]>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <![endif]-->
+  </div>
+
+</body>
+</html>
+

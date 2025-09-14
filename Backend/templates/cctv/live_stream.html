@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stream - {{ camera.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .camera-info {
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+        .stream-container {
+            position: relative;
+            background-color: #000;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stream-video {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+        .loading {
+            color: white;
+            font-size: 18px;
+        }
+        .controls {
+            padding: 20px;
+            background-color: #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 Live Stream</h1>
+            <div class="camera-info">
+                <strong>{{ camera.name }}</strong>
+                {% if camera.location %} - {{ camera.location }}{% endif %}
+            </div>
+        </div>
+
+        <div class="stream-container">
+            {% if stream_url %}
+                <img src="{{ stream_url }}" 
+                     alt="Live feed from {{ camera.name }}" 
+                     class="stream-video"
+                     onerror="this.style.display='none';"
+                     onload="this.style.display='block';">
+            {% else %}
+                <div class="loading">
+                    Stream not available
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="location.reload()">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div class="module">
+    <h2>{{ title }}</h2>
+    <div class="form-row">
+        <div class="field-box">
+            <label>Name:</label>
+            <div class="readonly">{{ object.name }}</div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="field-box">
+            <label>Description:</label>
+            <div class="readonly">{{ object.description|linebreaks }}</div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="field-box">
+            <label>Status:</label>
+            <div class="readonly">{{ object.get_status_display }}</div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="field-box">
+            <label>Created At:</label>
+            <div class="readonly">{{ object.created_at }}</div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="field-box">
+            <label>Updated At:</label>
+            <div class="readonly">{{ object.updated_at }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

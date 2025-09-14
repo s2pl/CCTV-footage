@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Createathon – Message</title>
+  <style type="text/css">
+    /* Reset & base */
+    body, table, td, p { margin:0; padding:0; }
+    img { display:block; border:0; }
+
+    /* Container */
+    .inner { width:100% !important; max-width:600px; margin:0 auto; }
+    .pad-40 { padding:10px !important; }
+    .pad-0-40 { padding:0 40px; }
+    .pad-12-20 { padding:12px 20px; }
+
+    /* Typography */
+    h1 { font-size:24px; color:#FFF; margin-bottom:20px; }
+    h2 { font-size:20px; color:#FFF; margin-bottom:20px; }
+    p, li { font-size:16px; line-height:24px; color:#E0E0E0; }
+
+    a.button {
+      background:#6C63FF; color:#FFF; text-decoration:none;
+      padding:14px 28px; border-radius:4px;
+      font-size:16px; font-weight:bold; display:inline-block;
+    }
+    hr { border:none; border-top:1px solid #333; margin:0; }
+    
+    /* Social Media Links */
+    .social-links {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .social-icon {
+      display: inline-block;
+      margin: 0 8px;
+      border-radius: 50%;
+      background: #2A2A2A;
+      height: 36px;
+      width: 36px;
+      text-align: center;
+      line-height: 36px;
+    }
+    .social-icon img {
+      display: inline-block;
+      vertical-align: middle;
+      width: 20px;
+      height: 20px;
+    }
+    .website-link {
+      color: #6C63FF;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    @media only screen and (max-width:600px) {
+      .pad-40 { padding:10px !important; }
+      .pad-0-40 { padding:10px 20px !important; }
+      .pad-12-20 { padding:10px 16px !important; }
+      h1 { font-size:20px!important; margin-bottom:16px!important; }
+      h2 { font-size:18px!important; margin-bottom:16px!important; }
+      p, li { font-size:14px!important; line-height:20px!important; }
+      a.button { padding:12px 24px!important; font-size:14px!important; }
+      .social-icon { height: 32px; width: 32px; line-height: 32px; }
+    }
+  </style>
+</head>
+<body style="background:#121212;color:#E0E0E0;font-family:Arial,sans-serif;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" class="pad-40">
+
+        <!-- Card -->
+        <table role="presentation" class="inner" cellpadding="0" cellspacing="0"
+               style="background:#1E1E1E;border-radius:8px;overflow:hidden;">
+
+          <!-- 1) Logo + Name row -->
+          <tr>
+            <td align="center" style="background:#1E1E1E; padding:30px 0 10px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="display:inline-block;">
+                <tr>
+                  <!-- Logo -->
+                  <td style="padding-right:12px;">
+                    <img
+                      src="https://res.cloudinary.com/dkv5f69sj/image/upload/v1746215254/logo_vyclyo.png"
+                      alt="Createathon logo"
+                      width="48"
+                      height="auto"
+                    />
+                  </td>
+                  <!-- Company Name -->
+                  <td style="vertical-align:middle;">
+                    <span style="font-size:24px; font-weight:bold; color:#FFFFFF; font-family:Arial, sans-serif;">
+                      Createathon
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- 2) Divider -->
+          <tr>
+            <td class="pad-0-40">
+              <hr />
+            </td>
+          </tr>
+
+          <!-- 3) Main Content -->
+          
+          <!-- Subject as Heading -->
+          <tr>
+            <td class="pad-0-40">
+              <h1>{{ subject }}</h1>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td class="pad-0-40">
+              <p>
+                Hello {{ name|default:"Creator" }},
+              </p>
+            </td>
+          </tr>
+
+          <!-- Message Content -->
+          <tr>
+            <td class="pad-0-40">
+              <div style="margin-top:15px; margin-bottom:30px;">
+                {{ message|safe }}
+              </div>
+            </td>
+          </tr>
+
+          <!-- Optional CTA Button -->
+          {% if cta_url and cta_text %}
+          <tr>
+            <td align="center" class="pad-12-20">
+              <a href="{{ cta_url }}" class="button">{{ cta_text }}</a>
+            </td>
+          </tr>
+          {% endif %}
+
+          
+       
+          <!-- Footer Signature -->
+          <tr>
+            <td class="pad-0-40" style="padding-bottom:20px;">
+              <p style="margin-bottom:5px;">
+                Best regards,
+              </p>
+              <p>
+                The Createathon Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Disclaimer -->
+          <tr>
+            <td class="pad-0-40" style="padding-top: 20px;">
+              <div style="background-color: #282828; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                <p style="margin:0; font-size: 14px; color: #919191;">
+                  <strong style="color: #919191;">Disclaimer:</strong><br>
+                  Please note that the stipend and official onboarding as a full-time content creator in our network will only be provided upon successful completion and qualification of the 21-day Onboarding Program. All benefits are subject to meeting the program's requirements and final approval during the onboarding process.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+         <tr><td class="pad-0-40"><hr /></td></tr>
+
+          
+          <!-- Social Media Links and Website -->
+          <tr>
+            <td class="pad-0-40">
+              <div style="text-align:center; margin:20px 0;">
+                <p style="margin-bottom:15px;">Visit our website: <a href="https://createathon.co/" class="website-link">createathon.co</a></p>
+                <p style="margin-bottom:10px; font-size:14px; color:#AAAAAA;">Connect with us on social media:</p>
+                <div style="text-align:center; margin:15px 0;">
+                  <a href="https://x.com/createathonn" style="display:inline-block; margin:0 8px;" target="_blank">
+                    <img src="https://img.icons8.com/?size=100&id=fJp7hepMryiw&format=png&color=FFFFFF" alt="Twitter" width="24" height="24">
+                  </a>
+                  <a href="https://www.linkedin.com/company/creataethon" style="display:inline-block; margin:0 8px;" target="_blank">
+                    <img src="https://img.icons8.com/?size=100&id=NTCUeTIie8CC&format=png&color=FFFFFF" alt="LinkedIn" width="24" height="24">
+                  </a>
+                  <a href="https://www.instagram.com/createathon._/" style="display:inline-block; margin:0 8px;" target="_blank">
+                    <img src="https://img.icons8.com/?size=100&id=2auu2UERwFm8&format=png&color=FFFFFF" alt="Instagram" width="24" height="24">
+                  </a>
+                  <a href="http://reddit.com/r/Creataethon/" style="display:inline-block; margin:0 8px;" target="_blank">
+                    <img src="https://img.icons8.com/?size=100&id=12463&format=png&color=FFFFFF" alt="Reddit" width="24" height="24">
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html> 

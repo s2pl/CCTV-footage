@@ -1,0 +1,3 @@
+## ⚖️ Legal Notice
+
+This code is provided solely for review purposes. Any usage, deployment, or implementation of this code, in whole or in part, without payment of the agreed Phase 2-3 installment, will be considered an act of fraud under applicable Indian law. Unauthorized use may result in legal action, including but not limited to civil and criminal proceedings, as per the laws of India. Please ensure all payments are completed before using this code in any capacity.

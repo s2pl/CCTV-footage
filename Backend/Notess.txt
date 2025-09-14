@@ -1,0 +1,65 @@
+# Initial Django Setup
+python -m pip install Django  # Install Django
+django-admin startproject Greaves  # Create new Django project
+cd Greaves  # Change into project directory
+python manage.py startapp LEU1  # Create new Django app
+python manage.py makemigrations  # Create database migrations
+python manage.py migrate  # Apply database migrations
+python manage.py createsuperuser  # Create admin user
+# Remember to add app name to INSTALLED_APPS in settings.py
+
+# Database Migration Commands
+python manage.py inspectdb > models.py  # Generate models from existing database
+python manage.py inspectdb --database=default > ATP/models3.py
+python manage.py inspectdb --database=leu1_atp > LEU1_ATP/models3.py 
+python manage.py inspectdb --database=leu1_mc_shop > Mc_Shop/models3.py
+python manage.py migrate --fake ATP zero  # Fake migration for ATP app
+python manage.py makemigrations Mc_Shop  # Create migrations for Mc_Shop app
+
+# Project Structure
+pip install django-extensions  # Install django-extensions
+Get-ChildItem -Path D:\Python_Works\WebApplication\Prj04\Greaves -Recurse  # List directory structure
+
+# Requirements Management
+pip install -r requirements.txt  # Install project dependencies
+pip freeze > requirements.txt  # Save current dependencies to file
+
+# IIS Setup Commands
+pip install pywin32  # Install Windows Python extensions
+pip install wfastcgi  # Install FastCGI for IIS
+wfastcgi enable  # Enable FastCGI
+
+# IIS Configuration Settings
+# Site Physical Path: D:\Python_Project\Web_App\Prj04\Greaves
+
+# Application Settings:
+# DJANGO_SETTINGS_MODULE = Greaves.settings
+# PYTHONPATH = D:\Python_Project\Web_App\Prj04\Greaves
+# WSGI_HANDLER = Greaves.wsgi.application
+
+# Handler Mapping:
+# Path: *
+# Module: FastCgiModule
+# Executable: D:\Python_Project\Web_App\Prj04\venv\Scripts\python.exe|D:\Python_Project\Web_App\Prj04\venv\Lib\site-packages\wfastcgi.py
+# Name: DJANGO HANDLER
+
+# Static Files in IIS:
+# 1. Create new folder in main app directory (next to manage.py)
+# 2. Create virtual directory for static files
+# 3. Configure in IIS
+
+# Additional Notes:
+# - Check firewall settings for required ports
+# - Project Directory: D:\Python_Project\Web_App\Prj04\Greaves
+# - Terminal Path: (venv) D:\Python_Project\Web_App\Prj04\Greaves>
+# - Server IP: 10.24.0.102
+
+# Bootstrap Container Example:
+# <div class="container mt-4">
+#     <div class="col-lg-6 col-md-6 col-sm-6">
+
+
+
+#android
+
+ ./gradlew signingReport

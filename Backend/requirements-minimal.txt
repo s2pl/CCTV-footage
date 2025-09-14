@@ -1,0 +1,61 @@
+# Minimal Ubuntu-compatible requirements file
+# Only essential packages with conservative versions
+
+# Core Django Framework
+Django==3.2.25
+djangorestframework==3.14.0
+djangorestframework_simplejwt==4.4.0
+django-cors-headers==3.10.1
+
+# Database
+psycopg2-binary==2.8.6
+
+# Task Queue and Scheduling  
+celery==5.1.2
+redis==3.5.3
+kombu==5.1.0
+billiard==3.6.4
+vine==5.0.0
+
+# Authentication and Security
+PyJWT==2.4.0
+python-jose==3.3.0
+passlib==1.7.4
+cryptography==3.4.8
+bcrypt==3.2.0
+
+# Computer Vision (Ubuntu compatible versions)
+opencv-python==4.5.5.64
+pillow==8.3.2
+numpy==1.21.6
+imageio==2.15.0
+
+# HTTP and API clients
+requests==2.28.2
+urllib3==1.26.15
+h11==0.12.0
+
+# Environment and Configuration
+python-dotenv==0.19.2
+PyYAML==6.0
+
+# Utilities and Dependencies
+python-dateutil==2.8.2
+pytz==2022.7
+six==1.16.0
+sqlparse==0.4.3
+
+# Text Processing and CLI
+click==8.0.4
+colorama==0.4.6
+
+# Development and Compatibility
+typing_extensions==4.4.0
+attrs==22.2.0
+certifi==2022.12.7
+charset-normalizer==3.1.0
+idna==3.4
+defusedxml==0.7.1
+
+# Additional utilities
+python-multipart==0.0.5
