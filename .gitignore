@@ -53,6 +53,7 @@ staticfiles/
 *.avi
 *.mov
 *.mkv
+*.exe
 
 backup/
 client/
