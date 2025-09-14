@@ -53,15 +53,43 @@ staticfiles/
 *.avi
 *.mov
 *.mkv
-*.exe
+*.wmv
+*.flv
+*.webm
 
+# Executable files
+*.exe
+*.msi
+*.dmg
+*.pkg
+
+# Backup and client directories
 backup/
 client/
 
-# CCTV Recordings (large files - MP4 format)
+# CCTV Recordings (large files - all formats)
 Backend/media/recordings/
 Backend/media/logs/
 Backend/media/thumbnails/
+Backend/media/test_recordings/
+
+# Test recordings and large media files
+Backend/test_recording/
+Backend/test_recording.py
+Backend/*.avi
+Backend/*.mp4
+Backend/*.mov
+
+# MediaMTX server files
+Backend/rstp-server/mediamtx/
+Backend/rstp-server/*.exe
+Backend/rstp-server/*.zip
+
+# Utils directory large files
+Backend/utils/*.exe
+Backend/utils/*.zip
+Backend/utils/*.avi
+Backend/utils/*.mp4
 
 # Node.js
 node_modules/
