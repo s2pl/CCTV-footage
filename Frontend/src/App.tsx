@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Component, ReactNode } from 'react';
+import { useState, useEffect, Component, ReactNode } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Sidebar from './components/Layout/Sidebar';
@@ -6,6 +6,7 @@ import Header from './components/Layout/Header';
 import DashboardView from './components/Dashboard/DashboardView';
 import CameraList from './components/Cameras/CameraList';
 import LiveFeedView from './components/LiveFeed/LiveFeedView';
+import HttpLiveFeedView from './components/LiveFeed/HttpLiveFeedView';
 import UserList from './components/Users/UserList';
 import AccessControlView from './components/AccessControl/AccessControlView';
 import RecordingsView from './components/Recordings/RecordingsView';
@@ -28,7 +29,7 @@ class ErrorBoundary extends Component<
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: unknown) {
     console.warn('Error boundary caught error during hot reload:', error, errorInfo);
   }
 
@@ -61,39 +62,9 @@ function App() {
 function AppContent() {
   const [activeView, setActiveView] = useState('dashboard');
   
-  // Simple approach: try-catch around useAuth with consistent hook calls
-  let authContext;
-  let hasAuthError = false;
-  
-  try {
-    authContext = useAuth();
-  } catch (error) {
-    hasAuthError = true;
-    console.warn('AuthContext not ready during hot reload');
-    // Provide fallback auth state
-    authContext = {
-      isAuthenticated: false,
-      isLoading: true,
-      user: null,
-      login: async () => ({ success: false, error: 'Context initializing' }),
-      logout: () => {},
-      refreshToken: async () => false
-    };
-  }
-  
+  // Always call useAuth hook - let the AuthProvider handle errors
+  const authContext = useAuth();
   const { isAuthenticated, isLoading, login } = authContext;
-  
-  // If we had an auth error during hot reload, show loading briefly
-  if (hasAuthError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Initializing...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Debug authentication state changes
   useEffect(() => {
@@ -105,6 +76,7 @@ function AppContent() {
       case 'dashboard': return <DashboardView onNavigate={setActiveView} />;
       case 'cameras': return <CameraList />;
       case 'live-feed': return <LiveFeedView isActivePage={true} />;
+      case 'http-live-feed': return <HttpLiveFeedView isActivePage={true} />;
       case 'users': return <UserList />;
       case 'access-control': return <AccessControlView />;
       case 'recordings': return <RecordingsView />;

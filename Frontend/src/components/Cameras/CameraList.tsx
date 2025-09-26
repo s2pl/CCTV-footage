@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Plus, Edit, Trash2, Settings, Search, Camera, Download, Upload, AlertCircle, CheckCircle, X, Video, VideoOff, RotateCcw } from 'lucide-react';
+import { Plus, Edit, Trash2, Settings, Search, Camera, Download, Upload, AlertCircle, CheckCircle, X, Video, VideoOff, RotateCcw, RefreshCw } from 'lucide-react';
 import { useCCTV } from '../../hooks/useCCTV';
 import { Camera as CameraType } from '../../services/types';
 import { streamingService } from '../../services';
@@ -12,6 +12,7 @@ const CameraList: React.FC = () => {
     deleteCamera, 
     createCamera, 
     getCameraStreamInfo,
+    refreshAll,
     loading, 
     error, 
     clearError 
@@ -112,6 +113,14 @@ const CameraList: React.FC = () => {
     setShowForm(false);
     setEditingCamera(null);
   };
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshAll();
+    } catch (error) {
+      console.error('Error refreshing cameras:', error);
+    }
+  }, [refreshAll]);
 
   // CSV Export functionality
   const handleExportCSV = () => {
@@ -332,6 +341,14 @@ const CameraList: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
           <button
             onClick={handleExportCSV}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"

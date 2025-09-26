@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Shield } from 'lucide-react';
+import { X, Save, Shield, Eye, EyeOff } from 'lucide-react';
 import { useUsers } from '../../hooks/useUsers';
 import { useCCTV } from '../../hooks/useCCTV';
 import { User as UserType, Permission } from '../../services/userService';
@@ -32,6 +32,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
     active: true
   });
   const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -167,15 +169,28 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Password {!user && '*'}
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required={!user}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder={user ? "Leave blank to keep current password" : "Enter password"}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required={!user}
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder={user ? "Leave blank to keep current password" : "Enter password"}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
               {user && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Leave blank to keep current password.
@@ -188,15 +203,28 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Confirm Password *
                 </label>
-                <input
-                  type="password"
-                  name="password_confirm"
-                  value={formData.password_confirm}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Confirm password"
-                />
+                <div className="relative">
+                  <input
+                    type={showPasswordConfirm ? "text" : "password"}
+                    name="password_confirm"
+                    value={formData.password_confirm}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Confirm password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {showPasswordConfirm ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Eye, EyeOff } from 'lucide-react';
 import { useCCTV } from '../../hooks/useCCTV';
 import { Camera, CameraRegistration } from '../../services/types';
 
@@ -30,6 +30,7 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
   });
   const [isFormReady, setIsFormReady] = useState(false);
   const [cameraId, setCameraId] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (camera && camera.id && camera.id !== cameraId) {
@@ -191,13 +192,14 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Location
+                Location *
               </label>
               <input
                 type="text"
                 name="location"
                 value={formData.location || ''}
                 onChange={handleChange}
+                required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="e.g., Building A - Front Door"
               />
@@ -205,15 +207,16 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
+                Description *
               </label>
               <textarea
                 name="description"
                 value={formData.description || ''}
                 onChange={handleChange}
+                required
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder="Optional description for this camera"
+                placeholder="Description for this camera"
               />
             </div>
 
@@ -303,15 +306,28 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password || ''}
-                onChange={handleChange}
-                autoComplete="current-password"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder="Camera password (optional)"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password || ''}
+                  onChange={handleChange}
+                  autoComplete="current-password"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Camera password (optional)"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div>

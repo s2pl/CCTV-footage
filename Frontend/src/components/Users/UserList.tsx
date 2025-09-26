@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, UserCheck, UserX, Crown } from 'lucide-react';
+import { Plus, Edit, Trash2, UserCheck, UserX, Crown, RefreshCw } from 'lucide-react';
 import { useUsers } from '../../hooks/useUsers';
 import { useHierarchy } from '../../hooks/useHierarchy';
 import { PermissionGuard } from '../Hierarchy/PermissionGuard';
@@ -8,7 +8,7 @@ import { USER_ROLES, UserRole } from '../../services/hierarchyTypes';
 import UserForm from './UserForm';
 
 const UserList: React.FC = () => {
-  const { users, deleteUser, updateUser, loading } = useUsers();
+  const { users, deleteUser, updateUser, fetchUsers, loading } = useUsers();
   const { 
     userRole, 
     canManageRole, 
@@ -62,6 +62,14 @@ const UserList: React.FC = () => {
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingUser(null);
+  };
+
+  const handleRefresh = async () => {
+    try {
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error refreshing users:', error);
+    }
   };
 
   const getRoleIcon = (role: string) => {
@@ -120,16 +128,26 @@ const UserList: React.FC = () => {
           )} */}
         </div>
         
-        {/* Only show Add User button if user can create users */}
-        <PermissionGuard requiredFeature="user_management">
+        <div className="flex gap-3">
           <button
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add User</span>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </button>
-        </PermissionGuard>
+          {/* Only show Add User button if user can create users */}
+          <PermissionGuard requiredFeature="user_management">
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add User</span>
+            </button>
+          </PermissionGuard>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">

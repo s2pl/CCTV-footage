@@ -7,6 +7,7 @@ import {
   Calendar, 
   BarChart3,
   Eye,
+  Globe,
   LogOut
 } from 'lucide-react';
 
@@ -20,7 +21,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'cameras', label: 'Cameras', icon: Camera },
-    { id: 'live-feed', label: 'Live Feed', icon: Monitor },
+    { id: 'live-feed', label: 'Live Feed (RTSP)', icon: Monitor },
+    { id: 'http-live-feed', label: 'HTTP Live Feed', icon: Globe },
     // { id: 'access-control', label: 'Access Control', icon: Shield },
     { id: 'recordings', label: 'Recordings', icon: Eye },
     { id: 'schedule', label: 'Schedule', icon: Calendar },

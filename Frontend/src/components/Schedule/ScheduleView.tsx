@@ -5,7 +5,7 @@ import { useCCTV } from '../../hooks/useCCTV';
 import ScheduleForm from './ScheduleForm';
 
 const ScheduleView: React.FC = () => {
-  const { schedules, scheduleStats, createSchedule, updateSchedule, deleteSchedule, activateSchedule, deactivateSchedule, cameras, error, clearError, loading } = useCCTV();
+  const { schedules, scheduleStats, createSchedule, updateSchedule, deleteSchedule, activateSchedule, deactivateSchedule, cameras, error, clearError, loading, refreshAll } = useCCTV();
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<RecordingSchedule | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
@@ -215,6 +215,14 @@ const ScheduleView: React.FC = () => {
     setEditingSchedule(null);
   };
 
+  const handleRefresh = async () => {
+    try {
+      await refreshAll();
+    } catch (error) {
+      console.error('Error refreshing schedules:', error);
+    }
+  };
+
   // Show loading state while data is being fetched
   if (loading) {
     return (
@@ -239,6 +247,14 @@ const ScheduleView: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-400">Manage automated recording schedules for your cameras</p>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
           <button
             onClick={handleExportSchedules}
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -354,16 +370,7 @@ const ScheduleView: React.FC = () => {
             <option value="expired">Expired</option>
           </select>
           
-          <button
-            onClick={() => {
-              setFilterType('all');
-              setFilterCamera('all');
-              setFilterStatus('all');
-            }}
-            className="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+
         </div>
       </div>
 

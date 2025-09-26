@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Key, Users, Plus, Edit, Trash2 } from 'lucide-react';
+import { Shield, Key, Users, Plus, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { useData } from '../../hooks/useData';
 
 interface AccessEndpoint {
@@ -39,6 +39,7 @@ const AccessControlView: React.FC = () => {
   ]);
   const [showForm, setShowForm] = useState(false);
   const [editingEndpoint, setEditingEndpoint] = useState<AccessEndpoint | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const getUserName = (userId: string) => {
     return users.find(u => u.id === userId)?.username || 'Unknown User';
@@ -46,6 +47,18 @@ const AccessControlView: React.FC = () => {
 
   const getCameraName = (cameraId: string) => {
     return cameras.find(c => c.id === cameraId)?.name || 'Unknown Camera';
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      // Simulate refresh - in a real app, this would fetch fresh data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error('Error refreshing access control:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const EndpointForm: React.FC<{ endpoint?: AccessEndpoint | null; onClose: () => void }> = ({ endpoint, onClose }) => {
@@ -232,13 +245,23 @@ const AccessControlView: React.FC = () => {
             Manage API endpoints and user access permissions
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Endpoint</span>
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Endpoint</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}

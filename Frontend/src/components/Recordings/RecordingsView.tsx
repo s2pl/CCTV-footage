@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, Trash2, Play, HardDrive, AlertCircle, CheckCircle, X, ExternalLink, Cloud } from 'lucide-react';
+import { Search, Download, Trash2, Play, HardDrive, AlertCircle, CheckCircle, X, ExternalLink, Cloud, RefreshCw } from 'lucide-react';
 import { Recording } from '../../services/types';
 import { useCCTV } from '../../hooks/useCCTV';
 import GCPTransferPanel from './GCPTransferPanel';
 
 const RecordingsView: React.FC = () => {
-  const { cameras, recordings, recordingStats, loading, error, clearError } = useCCTV();
+  const { cameras, recordings, recordingStats, loading, error, clearError, refreshAll } = useCCTV();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [cameraFilter, setCameraFilter] = useState<string>('all');
@@ -80,7 +80,7 @@ const RecordingsView: React.FC = () => {
       }
 
       // Get the base URL from environment or use default
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126';
       
       // Construct the full download URL
       const downloadUrl = `${baseURL}${recording.file_url}`;
@@ -139,6 +139,15 @@ const RecordingsView: React.FC = () => {
   // Close video modal
   const closeVideoModal = () => {
     setPlayingRecording(null);
+  };
+
+  // Handle refresh
+  const handleRefresh = async () => {
+    try {
+      await refreshAll();
+    } catch (error) {
+      console.error('Error refreshing recordings:', error);
+    }
   };
 
   // Format file size
@@ -223,6 +232,14 @@ const RecordingsView: React.FC = () => {
         </div>
         
         <div className="flex items-center space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
           {selectedRecordings.size > 0 && (
             <>
               <button
@@ -615,7 +632,7 @@ const RecordingsView: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+                    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126';
                     const videoUrl = `${baseURL}${playingRecording.file_url}`;
                     window.open(videoUrl, '_blank');
                   }}
@@ -647,7 +664,7 @@ const RecordingsView: React.FC = () => {
                   }}
                 >
                   {(() => {
-                    const videoUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${playingRecording.file_url}`;
+                    const videoUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126'}${playingRecording.file_url}`;
                     const fileExt = playingRecording.file_path?.split('.').pop()?.toLowerCase();
                     
                     // Determine MIME type based on file extension

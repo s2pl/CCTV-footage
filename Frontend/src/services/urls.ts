@@ -1,7 +1,7 @@
 // Centralized API URLs for all services
 export const API_URLS = {
   // Base API URL
-  BASE: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/v0/api',
+  BASE: import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126/v0/api',
   
   // JWT Token endpoints (Django Simple JWT)
   TOKEN: {
