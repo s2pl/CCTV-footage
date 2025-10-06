@@ -260,8 +260,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.2:3000",  # React dev server on IP
     "http://192.168.1.2",
     "https://192.168.1.1",
-    "http://rstpfe.storage.googleapis.com",
+    # Google storage
     "https://rstpfe.storage.googleapis.com",
+    "http://rstpfe.storage.googleapis.com",
     # Mobile app origins
     "capacitor://localhost",
     "ionic://localhost",
@@ -511,6 +512,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://192.168.1.2",
     "http://35.200.133.126:8000",
     "http://35.200.133.126",
+    "https://rstpfe.storage.googleapis.com",
     "http://rstpfe.storage.googleapis.com",
     
 ]
