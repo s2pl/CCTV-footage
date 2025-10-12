@@ -19,7 +19,7 @@ class StreamingService {
   // Get Live Video Stream URL (No Auth Required)
   // Endpoint: GET /cctv/cameras/{camera_id}/stream/?quality={quality}
   getLiveStreamUrl(cameraId: string, quality: string = 'main'): string {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126/v0/api';
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://cctvapi.suvidhaen.com/v0/api';
     return `${baseURL}/cctv/cameras/${cameraId}/stream/?quality=${quality}`;
   }
 

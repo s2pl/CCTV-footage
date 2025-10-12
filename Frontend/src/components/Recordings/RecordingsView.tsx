@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, Trash2, Play, HardDrive, AlertCircle, CheckCircle, X, ExternalLink, Cloud, RefreshCw } from 'lucide-react';
+import { Search, Download, Trash2, Play, HardDrive, AlertCircle, CheckCircle, X, ExternalLink, RefreshCw } from 'lucide-react';
 import { Recording } from '../../services/types';
 import { useCCTV } from '../../hooks/useCCTV';
 import GCPTransferPanel from './GCPTransferPanel';
@@ -79,34 +79,8 @@ const RecordingsView: React.FC = () => {
         return;
       }
 
-      // Get the base URL from environment or use default
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126';
-      
-      // Construct the full download URL
-      const downloadUrl = `${baseURL}${recording.file_url}`;
-      
-      // Determine file extension from file_path or default to mp4
-      const getFileExtension = (filePath?: string) => {
-        if (filePath) {
-          const ext = filePath.split('.').pop()?.toLowerCase();
-          return ext && ['mp4', 'avi', 'mov', 'mkv'].includes(ext) ? `.${ext}` : '.mp4';
-        }
-        return '.mp4';
-      };
-      
-      const fileExtension = getFileExtension(recording.file_path);
-      const safeFileName = `${recording.name.replace(/[^a-zA-Z0-9-_.]/g, '_')}${fileExtension}`;
-      
-      // Create a temporary anchor element to trigger download
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = safeFileName;
-      link.target = '_blank';
-      
-      // Append to body, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Open the exact URL passed by file_url without any modifications
+      window.open(recording.file_url, '_blank');
       
       setSuccess(`Download started for "${recording.name}"`);
       setTimeout(() => setSuccess(null), 3000);
@@ -632,9 +606,7 @@ const RecordingsView: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126';
-                    const videoUrl = `${baseURL}${playingRecording.file_url}`;
-                    window.open(videoUrl, '_blank');
+                    window.open(playingRecording.file_url, '_blank');
                   }}
                   className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                   title="Open in new tab"
@@ -664,7 +636,7 @@ const RecordingsView: React.FC = () => {
                   }}
                 >
                   {(() => {
-                    const videoUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://35.200.133.126'}${playingRecording.file_url}`;
+                    const videoUrl = playingRecording.file_url;
                     const fileExt = playingRecording.file_path?.split('.').pop()?.toLowerCase();
                     
                     // Determine MIME type based on file extension
