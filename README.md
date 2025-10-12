@@ -1,4 +1,4 @@
-# Shree Swami Smartha CCTV Management System
+# Management System
 
 A comprehensive full-stack CCTV camera management system with live streaming, recording, cloud storage, and user administration. Built with Django backend and React frontend, featuring GCP integration and Tailscale networking.
 
@@ -254,6 +254,45 @@ npm run dev
 docker-compose up --build
 ```
 
+## 📹 Camera Setup with Tailscale
+
+### Adding Cameras to the Network
+
+This system uses Tailscale for secure remote access to IP cameras. To add a camera to your network:
+
+#### 1. Install Tailscale on the Camera Network
+Install Tailscale on a device (router, server, or computer) that has access to your camera network.
+
+#### 2. Configure Tailscale Routes
+Use the following command to advertise your camera network routes:
+
+```bash
+tailscale up --accept-routes --advertise-routes=192.168.1.200/24
+```
+
+**Command Breakdown:**
+- `--accept-routes`: Accept routes advertised by other Tailscale devices
+- `--advertise-routes=192.168.1.200/24`: Advertise your camera network subnet (adjust IP range to match your network)
+
+#### 3. Verify Tailscale Status
+Check the status of connected devices:
+
+```bash
+tailscale status
+```
+
+#### 4. Add Camera in the Application
+Once Tailscale is configured:
+1. Log in to the admin panel or frontend
+2. Navigate to Camera Management
+3. Add your camera using its local IP address (e.g., `192.168.1.100`)
+4. The system will access it through the Tailscale network
+
+**Note:** Ensure the IP range in the `--advertise-routes` parameter matches your actual camera network subnet. Common examples:
+- `192.168.1.0/24` - For 192.168.1.x network
+- `192.168.0.0/24` - For 192.168.0.x network
+- `10.0.0.0/24` - For 10.0.0.x network
+
 ## 🚀 Running the Project
 
 ### Development Servers
@@ -389,6 +428,15 @@ The application supports both light and dark themes. Users can toggle between th
    
    # Check Tailscale connectivity
    tailscale status
+   
+   # Verify Tailscale routes are advertised
+   tailscale up --accept-routes --advertise-routes=192.168.1.200/24
+   
+   # Ping camera through Tailscale network
+   ping 192.168.1.100
+   
+   # Test RTSP connection
+   ffplay -rtsp_transport tcp rtsp://camera-ip:554/stream
    ```
 
 4. **Frontend Build Issues:**
