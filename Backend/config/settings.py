@@ -37,6 +37,7 @@ ALLOWED_HOSTS = [
     "35.200.133.126",
     "192.168.1.2",
     "rstpfe.storage.googleapis.com",
+    "cctvapi.suvidhaen.com",
     
 ]
 
