@@ -234,13 +234,60 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ================================
-# GCP Cloud Storage Configuration
+# Cloud Storage Configuration
+# ================================
+# Choose storage backend: 'GCP' or 'AWS' or 'BOTH'
+CLOUD_STORAGE_BACKEND = os.getenv('CLOUD_STORAGE_BACKEND', 'AWS')  # Default to AWS
+
+# ================================
+# AWS S3 Storage Configuration
+# ================================
+# AWS Credentials
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', 'AKIAXTORPEGA2Y4Q7JCI')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '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')
+AWS_SESSION_TOKEN = os.getenv('AWS_SESSION_TOKEN', '')  # Optional: for temporary credentials
+AWS_REGION_NAME = os.getenv('AWS_REGION_NAME', 'ap-south-1')  # Mumbai region
+
+# S3 Bucket Settings
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', 'cctv-footage-bucket')
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION_NAME}.amazonaws.com'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',  # Cache for 1 day
+}
+
+# S3 Storage Behavior Settings
+AWS_S3_FILE_OVERWRITE = False        # Don't overwrite files with same name
+AWS_DEFAULT_ACL = 'private'          # Keep files private by default
+AWS_S3_VERIFY = True                 # Verify SSL certificates
+AWS_S3_USE_SSL = True                # Use HTTPS
+AWS_QUERYSTRING_AUTH = True          # Use signed URLs for private files
+AWS_S3_SIGNATURE_VERSION = 's3v4'    # Use signature version 4
+
+# Storage Behavior Settings
+AWS_STORAGE_CLEANUP_LOCAL = True     # Clean up local files after successful upload
+AWS_STORAGE_AUTO_UPLOAD = True       # Automatically upload new recordings
+AWS_STORAGE_UPLOAD_TIMEOUT = 600     # Upload timeout in seconds (10 minutes)
+AWS_STORAGE_RETRY_ATTEMPTS = 3       # Number of retry attempts for failed uploads
+
+# S3 URLs
+AWS_S3_BASE_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}"
+AWS_S3_MEDIA_URL = f"{AWS_S3_BASE_URL}/media/"
+
+# S3 Signed URL Settings
+AWS_PRESIGNED_URL_EXPIRATION = 7200  # Default expiration time for presigned URLs (in seconds, 2 hours)
+
+# S3 Storage Paths
+AWS_LOCATION = 'recordings'          # Base folder in bucket for recordings
+AWS_MEDIA_LOCATION = 'media'         # Folder for media files
+
+# ================================
+# GCP Cloud Storage Configuration (Legacy/Backup)
 # ================================
 # Main GCP Storage Settings
-GCP_STORAGE_BUCKET_NAME = 'cctv_feed'
-GCP_STORAGE_PROJECT_ID = 'learningdevops-455404'
-GCP_STORAGE_CREDENTIALS_PATH = 'credentials/learningdevops-455404-e1cd1646efa3.json'
-GCP_STORAGE_USE_GCS = True
+GCP_STORAGE_BUCKET_NAME = os.getenv('GCP_STORAGE_BUCKET_NAME', 'cctv_feed')
+GCP_STORAGE_PROJECT_ID = os.getenv('GCP_STORAGE_PROJECT_ID', 'learningdevops-455404')
+GCP_STORAGE_CREDENTIALS_PATH = os.getenv('GCP_STORAGE_CREDENTIALS_PATH', 'credentials/learningdevops-455404-e1cd1646efa3.json')
+GCP_STORAGE_USE_GCS = os.getenv('GCP_STORAGE_USE_GCS', 'False').lower() == 'true'
 
 # GCP Storage Behavior Settings
 GCP_STORAGE_CLEANUP_LOCAL = True     # Clean up local files after successful GCP upload
@@ -249,7 +296,7 @@ GCP_STORAGE_UPLOAD_TIMEOUT = 600     # Upload timeout in seconds (10 minutes)
 GCP_STORAGE_RETRY_ATTEMPTS = 3       # Number of retry attempts for failed uploads
 
 # GCP Storage URLs
-GCP_STORAGE_BASE_URL = "https://storage.googleapis.com/cctv_feed"
+GCP_STORAGE_BASE_URL = f"https://storage.googleapis.com/{GCP_STORAGE_BUCKET_NAME}"
 GCP_STORAGE_MEDIA_URL = f"{GCP_STORAGE_BASE_URL}/media/"
 
 # GCP Signed URL Settings
