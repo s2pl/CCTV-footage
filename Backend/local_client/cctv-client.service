@@ -1,0 +1,33 @@
+[Unit]
+Description=CCTV Local Recording Client
+Documentation=https://github.com/your-org/cctv-system
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cctv
+Group=cctv
+WorkingDirectory=/opt/cctv-client
+Environment="PATH=/opt/cctv-client/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/opt/cctv-client/venv/bin/python main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cctv-client
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/cctv-client/recordings
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=2G
+
+[Install]
+WantedBy=multi-user.target
+

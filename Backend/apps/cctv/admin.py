@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
-from .models import Camera, RecordingSchedule, Recording, CameraAccess, LiveStream, GCPVideoTransfer
+from .models import Camera, RecordingSchedule, Recording, CameraAccess, LiveStream, LocalRecordingClient, GCPVideoTransfer
 
 
 @admin.register(Camera)
@@ -256,3 +256,79 @@ class GCPVideoTransferAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Optimize queryset with select_related"""
         return super().get_queryset(request).select_related('recording', 'recording__camera', 'initiated_by')
+
+
+@admin.register(LocalRecordingClient)
+class LocalRecordingClientAdmin(admin.ModelAdmin):
+    """Admin configuration for LocalRecordingClient model"""
+    
+    list_display = [
+        'name', 'status_display', 'ip_address', 'last_heartbeat_display',
+        'cameras_count', 'recordings_count', 'created_at'
+    ]
+    list_filter = ['status', 'created_at', 'last_heartbeat']
+    search_fields = ['name', 'ip_address', 'client_token']
+    readonly_fields = ['id', 'client_token', 'created_at', 'updated_at', 'last_heartbeat']
+    filter_horizontal = ['assigned_cameras']
+    
+    fieldsets = (
+        ('Client Information', {
+            'fields': ('name', 'client_token', 'status', 'ip_address')
+        }),
+        ('System Information', {
+            'fields': ('system_info',),
+            'classes': ('collapse',)
+        }),
+        ('Assigned Cameras', {
+            'fields': ('assigned_cameras',)
+        }),
+        ('Metadata', {
+            'fields': ('id', 'last_heartbeat', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def status_display(self, obj):
+        """Display status with colored indicator"""
+        colors = {
+            'online': 'green',
+            'offline': 'gray',
+            'error': 'red'
+        }
+        color = colors.get(obj.status, 'gray')
+        return format_html(
+            '<span style="color: {};">●</span> {}',
+            color,
+            obj.get_status_display()
+        )
+    status_display.short_description = 'Status'
+    
+    def last_heartbeat_display(self, obj):
+        """Display last heartbeat with relative time"""
+        if obj.last_heartbeat:
+            delta = timezone.now() - obj.last_heartbeat
+            if delta.total_seconds() < 120:
+                return format_html('<span style="color: green;">{}</span>', obj.last_heartbeat.strftime('%Y-%m-%d %H:%M:%S'))
+            elif delta.total_seconds() < 600:
+                return format_html('<span style="color: orange;">{}</span>', obj.last_heartbeat.strftime('%Y-%m-%d %H:%M:%S'))
+            else:
+                return format_html('<span style="color: red;">{}</span>', obj.last_heartbeat.strftime('%Y-%m-%d %H:%M:%S'))
+        return "-"
+    last_heartbeat_display.short_description = 'Last Heartbeat'
+    
+    def cameras_count(self, obj):
+        """Display number of assigned cameras"""
+        return obj.assigned_cameras.count()
+    cameras_count.short_description = 'Cameras'
+    
+    def recordings_count(self, obj):
+        """Display number of recordings"""
+        return obj.recordings.count()
+    recordings_count.short_description = 'Recordings'
+    
+    def save_model(self, request, obj, form, change):
+        """Generate client token if creating new client"""
+        if not change:  # Creating new client
+            import secrets
+            obj.client_token = secrets.token_urlsafe(32)
+        super().save_model(request, obj, form, change)

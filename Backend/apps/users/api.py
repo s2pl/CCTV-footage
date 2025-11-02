@@ -138,7 +138,8 @@ api = NinjaAPI(
     description="Comprehensive user management system with authentication, authorization, and activity tracking",
     docs_url="/docs",
     openapi_url="/openapi.json",
-    urls_namespace="users_system"
+    urls_namespace="users_system",
+    csrf=False
 )
 
 # Authentication router

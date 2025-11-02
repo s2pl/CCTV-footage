@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Camera, RecordingSchedule, Recording, CameraAccess, LiveStream
+from .models import Camera, RecordingSchedule, Recording, CameraAccess, LiveStream, LocalRecordingClient
 
 
 class CameraSerializer(serializers.ModelSerializer):
@@ -153,7 +153,8 @@ class RecordingSerializer(serializers.ModelSerializer):
             'duration_seconds', 'start_time', 'end_time', 'status', 
             'error_message', 'resolution', 'frame_rate', 'codec', 
             'created_at', 'updated_at', 'file_url', 'is_active',
-            'file_exists', 'absolute_file_path'
+            'file_exists', 'absolute_file_path', 'recorded_by_client',
+            'recorded_by_client_name', 'upload_status'
         ]
         extra_kwargs = {
             'file_path': {'read_only': True},
@@ -507,3 +508,75 @@ class LiveStreamStatusSerializer(serializers.Serializer):
     stream_url = serializers.CharField(help_text="URL to access the stream")
     camera_info = serializers.DictField(help_text="Camera information")
     user_info = serializers.DictField(help_text="User who started the stream")
+
+
+class LocalRecordingClientSerializer(serializers.ModelSerializer):
+    """Serializer for LocalRecordingClient model"""
+    
+    assigned_cameras_count = serializers.SerializerMethodField()
+    recordings_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = LocalRecordingClient
+        fields = [
+            'id', 'name', 'client_token', 'ip_address', 'last_heartbeat',
+            'status', 'system_info', 'assigned_cameras', 'assigned_cameras_count',
+            'recordings_count', 'created_at', 'updated_at'
+        ]
+        extra_kwargs = {
+            'client_token': {'write_only': True},  # Don't expose token in API responses for security
+        }
+    
+    def get_assigned_cameras_count(self, obj):
+        """Get the number of cameras assigned to this client"""
+        return obj.assigned_cameras.count()
+    
+    def get_recordings_count(self, obj):
+        """Get the number of recordings made by this client"""
+        return obj.recordings.count()
+
+
+class LocalClientScheduleSerializer(serializers.ModelSerializer):
+    """Serializer for schedules returned to local clients"""
+    
+    # Use simple serializers instead of nested ModelSerializer for Django Ninja compatibility
+    camera_id = serializers.CharField(source='camera.id', read_only=True)
+    camera_name = serializers.CharField(source='camera.name', read_only=True)
+    camera_rtsp_url = serializers.CharField(source='camera.rtsp_url', read_only=True)
+    camera_rtsp_url_sub = serializers.CharField(source='camera.rtsp_url_sub', read_only=True, allow_null=True)
+    camera_ip_address = serializers.CharField(source='camera.ip_address', read_only=True)
+    camera_location = serializers.CharField(source='camera.location', read_only=True, allow_null=True)
+    camera_type = serializers.CharField(source='camera.camera_type', read_only=True)
+    camera_record_quality = serializers.CharField(source='camera.record_quality', read_only=True)
+    
+    class Meta:
+        model = RecordingSchedule
+        fields = [
+            'id', 'camera_id', 'camera_name', 'camera_rtsp_url', 'camera_rtsp_url_sub',
+            'camera_ip_address', 'camera_location', 'camera_type', 'camera_record_quality',
+            'name', 'schedule_type',
+            'start_time', 'end_time', 'start_date', 'end_date',
+            'days_of_week', 'is_active', 'created_at', 'updated_at'
+        ]
+
+
+class RecordingStatusUpdateSerializer(serializers.Serializer):
+    """Serializer for recording status updates from local client"""
+    
+    recording_id = serializers.UUIDField()
+    status = serializers.ChoiceField(choices=['scheduled', 'recording', 'completed', 'failed', 'stopped'])
+    progress = serializers.FloatField(required=False, help_text="Recording progress percentage (0-100)")
+    frames_recorded = serializers.IntegerField(required=False)
+    file_size = serializers.IntegerField(required=False)
+    error_message = serializers.CharField(required=False, allow_blank=True)
+    gcp_path = serializers.CharField(required=False, allow_blank=True)
+
+
+class HeartbeatSerializer(serializers.Serializer):
+    """Serializer for local client heartbeat"""
+    
+    client_id = serializers.UUIDField()
+    active_recordings = serializers.IntegerField()
+    available_space_gb = serializers.FloatField()
+    last_upload = serializers.DateTimeField(required=False)
+    system_info = serializers.DictField(required=False)

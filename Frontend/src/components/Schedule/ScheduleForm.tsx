@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Calendar, Clock, Repeat, CheckCircle } from 'lucide-react';
+import { X, Save, Calendar, Clock, Repeat, CheckCircle, Loader2 } from 'lucide-react';
+import { useToast } from '../Common/ToastContainer';
 import { RecordingSchedule, Camera as CameraType } from '../../services/types';
 
 interface ScheduleFormProps {
@@ -10,6 +11,7 @@ interface ScheduleFormProps {
 }
 
 const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, onClose, onSubmit, cameras }) => {
+  const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     camera: '',
     name: '',
@@ -24,7 +26,6 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, onClose, onSubmit
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (schedule) {
@@ -83,6 +84,11 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, onClose, onSubmit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent duplicate submissions
+    if (loading) {
+      return;
+    }
+    
     if (!validateForm()) {
       return;
     }
@@ -97,14 +103,19 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, onClose, onSubmit
       };
 
       await onSubmit(scheduleData);
-      setSuccess('Schedule saved successfully!');
+      showSuccess(
+        schedule ? 'Schedule Updated' : 'Schedule Created',
+        `Schedule "${formData.name}" has been saved successfully.`
+      );
       
-      // Close form after a short delay to show success message
-      setTimeout(() => {
-        onClose();
-      }, 1500);
-    } catch {
-      // Error handling is done by the parent component
+      // Close form immediately
+      onClose();
+    } catch (error) {
+      console.error('Error saving schedule:', error);
+      showError(
+        schedule ? 'Update Failed' : 'Creation Failed',
+        error instanceof Error ? error.message : 'An unexpected error occurred while saving the schedule.'
+      );
     } finally {
       setLoading(false);
     }
@@ -162,14 +173,6 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, onClose, onSubmit
             </button>
           </div>
         </div>
-
-        {/* Success Message */}
-        {success && (
-          <div className="mx-6 mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg flex items-center">
-            <CheckCircle className="w-5 h-5 mr-2" />
-            {success}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -370,7 +373,8 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, onClose, onSubmit
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              disabled={loading}
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -379,8 +383,17 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, onClose, onSubmit
               disabled={loading}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : (schedule ? 'Update Schedule' : 'Create Schedule')}
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{schedule ? 'Updating...' : 'Creating...'}</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>{schedule ? 'Update Schedule' : 'Create Schedule'}</span>
+                </>
+              )}
             </button>
           </div>
         </form>

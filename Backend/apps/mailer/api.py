@@ -29,7 +29,12 @@ class JWTAuth:
 
 jwt_auth = JWTAuth()
 
-api = NinjaAPI(urls_namespace='mailer_system')
+api = NinjaAPI(
+    title="Mailer API",
+    version="2.0.0",
+    urls_namespace='mailer_system',
+    csrf=False
+)
 
 # Create routers for mailer endpoints
 authenticated_router = Router(tags=["Mailer System - Authenticated"])

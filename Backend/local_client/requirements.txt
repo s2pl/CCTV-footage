@@ -1,0 +1,30 @@
+# Core Framework
+fastapi>=0.100.0
+uvicorn>=0.20.0
+pydantic>=2.5.0
+
+# HTTP Client
+httpx>=0.25.0
+httpcore==1.*
+
+# Scheduling
+APScheduler>=3.9.0
+
+# Video Processing
+opencv-python>=4.5.0
+opencv-contrib-python>=4.5.0
+numpy>=1.21.0
+
+# Google Cloud Storage
+google-cloud-storage>=2.10.0
+google-auth>=2.30.0
+proto-plus<2.0.0,>=1.22.3
+protobuf<7.0.0,>=3.19.5
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Utilities
+python-dateutil>=2.9.0
+pytz>=2024.1
+

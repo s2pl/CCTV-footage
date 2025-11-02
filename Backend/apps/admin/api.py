@@ -5,7 +5,12 @@ from django.shortcuts import get_object_or_404
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 
-api = NinjaAPI(urls_namespace='admin_system')
+api = NinjaAPI(
+    title="Admin Panel API",
+    version="3.0.0",
+    urls_namespace='admin_system',
+    csrf=False
+)
 
 class AdminPanelSchema(Schema):
     id: int

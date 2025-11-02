@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Shield, Eye, EyeOff } from 'lucide-react';
+import { X, Save, Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useUsers } from '../../hooks/useUsers';
 import { useCCTV } from '../../hooks/useCCTV';
+import { useToast } from '../Common/ToastContainer';
 import { User as UserType, Permission } from '../../services/userService';
 import { USER_ROLES, UserRole } from '../../services/hierarchyTypes';
 
@@ -23,6 +24,7 @@ interface UserFormProps {
 const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
   const { createUser, updateUser } = useUsers();
   const { cameras } = useCCTV();
+  const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -34,6 +36,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -58,43 +61,68 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
     }
   }, [user, cameras]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      return;
+    }
     
     // Validate password confirmation for new users
     if (!user && formData.password !== formData.password_confirm) {
-      alert('Passwords do not match');
+      showError('Validation Error', 'Passwords do not match');
       return;
     }
 
-    if (user) {
-      // For updates - backend expects different structure
-      const updateData: Partial<UserUpdateData> = {
-        username: formData.username,
-        role: formData.role,
-        active: formData.active
-      };
-      
-      // Include permissions for non-admin users
-      if (formData.role !== 'admin' && formData.role !== 'superadmin') {
-        updateData.permissions = permissions;
+    setIsSubmitting(true);
+
+    try {
+      if (user) {
+        // For updates - backend expects different structure
+        const updateData: Partial<UserUpdateData> = {
+          username: formData.username,
+          role: formData.role,
+          active: formData.active
+        };
+        
+        // Include permissions for non-admin users
+        if (formData.role !== 'admin' && formData.role !== 'superadmin') {
+          updateData.permissions = permissions;
+        }
+        
+        await updateUser(user.id, updateData);
+        showSuccess(
+          'User Updated',
+          `User "${formData.username}" has been updated successfully.`
+        );
+      } else {
+        // For new users, send all required data including password confirmation
+        const createData = {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          password_confirm: formData.password_confirm,
+          role: formData.role,
+          permissions: formData.role === USER_ROLES.ADMIN || formData.role === USER_ROLES.SUPERADMIN ? [] : permissions
+        };
+        await createUser(createData);
+        showSuccess(
+          'User Created',
+          `User "${formData.username}" has been created successfully.`
+        );
       }
       
-      updateUser(user.id, updateData);
-    } else {
-      // For new users, send all required data including password confirmation
-      const createData = {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        password_confirm: formData.password_confirm,
-        role: formData.role,
-        permissions: formData.role === USER_ROLES.ADMIN || formData.role === USER_ROLES.SUPERADMIN ? [] : permissions
-      };
-      createUser(createData);
+      onClose();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      showError(
+        user ? 'Update Failed' : 'Creation Failed',
+        error instanceof Error ? error.message : 'An unexpected error occurred while saving the user.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onClose();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -316,16 +344,27 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              disabled={isSubmitting}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4" />
-              <span>{user ? 'Update User' : 'Create User'}</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{user ? 'Updating...' : 'Creating...'}</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>{user ? 'Update User' : 'Create User'}</span>
+                </>
+              )}
             </button>
           </div>
         </form>

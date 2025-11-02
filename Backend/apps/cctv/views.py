@@ -172,7 +172,7 @@ class CameraViewSet(viewsets.ModelViewSet):
             )
     
     @action(detail=True, methods=['post'])
-         def quick_record(self, request, pk=None):
+    def quick_record(self, request, pk=None):
         """Start a quick 5-second recording"""
         camera = self.get_object()
         
@@ -184,16 +184,16 @@ class CameraViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-                         # Start 5-second recording
-             recording = camera.auto_record_5min(user=request.user)
-             
-             if recording:
-                 return Response({
-                     'message': 'Quick 5-second recording started successfully',
-                     'recording_id': str(recording.id),
-                     'recording_name': recording.name,
-                     'duration_seconds': 5,
-                     'estimated_end_time': (timezone.now() + timedelta(seconds=5)).isoformat()
+            # Start 5-second recording
+            recording = camera.auto_record_5min(user=request.user)
+            
+            if recording:
+                return Response({
+                    'message': 'Quick 5-second recording started successfully',
+                    'recording_id': str(recording.id),
+                    'recording_name': recording.name,
+                    'duration_seconds': 5,
+                    'estimated_end_time': (timezone.now() + timedelta(seconds=5)).isoformat()
                 })
             else:
                 return Response(

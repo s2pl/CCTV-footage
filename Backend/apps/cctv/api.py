@@ -14,8 +14,12 @@ from typing import List, Optional
 import uuid
 import logging
 
-from .models import Camera, RecordingSchedule, Recording, CameraAccess, LiveStream
-from .serializers import CameraSerializer, RecordingSerializer, LiveStreamSerializer, CameraAccessSerializer, RecordingScheduleSerializer
+from .models import Camera, RecordingSchedule, Recording, CameraAccess, LiveStream, LocalRecordingClient
+from .serializers import (
+    CameraSerializer, RecordingSerializer, LiveStreamSerializer, CameraAccessSerializer, 
+    RecordingScheduleSerializer, LocalClientScheduleSerializer, RecordingStatusUpdateSerializer,
+    HeartbeatSerializer, LocalRecordingClientSerializer
+)
 
 logger = logging.getLogger(__name__)
 
@@ -3112,7 +3116,7 @@ def _perform_gcp_upload(gcp_transfer):
 # Create the API instance with comprehensive documentation
 api = NinjaAPI(
     title="CCTV Management API",
-    version="1.0.0",
+    version="4.0.0",
     description="""
     ## 🎥 CCTV Management System API
     
@@ -3123,6 +3127,16 @@ api = NinjaAPI(
     openapi_url="/openapi.json",
     urls_namespace="cctv_system",  # Changed to unique namespace
     csrf=False  # Disable CSRF for API endpoints
+)
+
+# Create a separate API instance for direct local-client routes (compatibility)
+# This allows /api/local-client/* to work directly
+local_client_api = NinjaAPI(
+    title="Local Client API",
+    version="5.0.0",
+    description="API for local CCTV recording clients",
+    urls_namespace="local_client_direct",
+    csrf=False
 )
 
 # Add additional info to OpenAPI schema
@@ -3144,5 +3158,421 @@ def health_check(request):
         ]
     }
 
+# Local Client API Router
+local_client_router = Router(tags=["Local Client"])
+
+# Register endpoints on both routers with different paths
+# Main router uses /local-client prefix, direct router uses no prefix
+
+@local_client_router.get(
+    "/local-client/schedules",
+    summary="Get schedules for local client",
+    description="Returns all active schedules for cameras assigned to this client"
+)
+def get_local_client_schedules(request, client_id: str = None, last_sync: str = None):
+    """Get schedules for local client"""
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    try:
+        # Authenticate client using token
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            raise HttpError(401, "Missing or invalid authorization token")
+        
+        client_token = auth_header.split('Bearer ')[1]
+        
+        # Verify client token
+        try:
+            client = LocalRecordingClient.objects.get(client_token=client_token)
+        except LocalRecordingClient.DoesNotExist:
+            raise HttpError(401, "Invalid client token")
+        
+        # Update client heartbeat
+        client.mark_online()
+        if hasattr(request, 'META') and 'REMOTE_ADDR' in request.META:
+            client.ip_address = request.META['REMOTE_ADDR']
+            client.save(update_fields=['ip_address'])
+        
+        # Get assigned cameras
+        assigned_cameras = client.assigned_cameras.filter(recording_mode='local_client', is_active=True)
+        
+        # Check if client has any assigned cameras
+        if not assigned_cameras.exists():
+            logger.info(f"Client {client.name} has no assigned cameras")
+            return []  # Return empty list instead of error
+        
+        # Get active schedules for assigned cameras
+        schedules = RecordingSchedule.objects.filter(
+            camera__in=assigned_cameras,
+            is_active=True
+        ).select_related('camera')
+        
+        # Filter by last_sync if provided
+        if last_sync:
+            try:
+                sync_time = timezone.datetime.fromisoformat(last_sync.replace('Z', '+00:00'))
+                schedules = schedules.filter(updated_at__gte=sync_time)
+            except:
+                pass  # If parsing fails, return all schedules
+        
+        # Check if no schedules found
+        if not schedules.exists():
+            logger.info(f"No active schedules found for client {client.name}")
+            return []  # Return empty list instead of error
+        
+        serializer = LocalClientScheduleSerializer(schedules, many=True)
+        data = serializer.data
+        
+        # Validate that we have data
+        if not data:
+            return []
+        
+        # Transform to match client's expected format with nested camera object
+        result = []
+        for item in data:
+            try:
+                # Validate required fields
+                if not all(k in item for k in ['id', 'name', 'schedule_type', 'start_time', 'end_time', 'camera_id', 'camera_name']):
+                    logger.warning(f"Schedule missing required fields: {item.get('id', 'unknown')}")
+                    continue
+                
+                # Create nested camera object
+                schedule_data = {
+                    'id': str(item['id']),
+                    'name': item['name'],
+                    'schedule_type': item['schedule_type'],
+                    'start_time': str(item['start_time']),
+                    'end_time': str(item['end_time']),
+                    'start_date': str(item.get('start_date')) if item.get('start_date') else None,
+                    'end_date': str(item.get('end_date')) if item.get('end_date') else None,
+                    'days_of_week': item.get('days_of_week', []) if item.get('days_of_week') else [],
+                    'is_active': item.get('is_active', True),
+                    'camera': {
+                        'id': str(item['camera_id']),
+                        'name': item['camera_name'],
+                        'ip_address': item.get('camera_ip_address', ''),
+                        'rtsp_url': item.get('camera_rtsp_url', ''),
+                        'rtsp_url_sub': item.get('camera_rtsp_url_sub'),
+                        'camera_type': item.get('camera_type', 'rtsp'),
+                        'location': item.get('camera_location'),
+                        'record_quality': item.get('camera_record_quality', 'medium')
+                    }
+                }
+                result.append(schedule_data)
+            except Exception as e:
+                logger.error(f"Error transforming schedule {item.get('id', 'unknown')}: {str(e)}")
+                continue
+        
+        return result
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching schedules for local client: {str(e)}")
+        raise HttpError(500, f"Error fetching schedules: {str(e)}")
+
+
+@local_client_router.post(
+    "/local-client/recordings/status",
+    summary="Update recording status",
+    description="Update recording status from local client"
+)
+def update_recording_status(request):
+    """Update recording status from local client"""
+    from django.utils import timezone
+    import json
+    
+    try:
+        # Parse request body
+        body = json.loads(request.body)
+        
+        # Authenticate client
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            raise HttpError(401, "Missing or invalid authorization token")
+        
+        client_token = auth_header.split('Bearer ')[1]
+        
+        try:
+            client = LocalRecordingClient.objects.get(client_token=client_token)
+        except LocalRecordingClient.DoesNotExist:
+            raise HttpError(401, "Invalid client token")
+        
+        # Validate data using serializer
+        serializer = RecordingStatusUpdateSerializer(data=body)
+        if not serializer.is_valid():
+            raise HttpError(400, f"Invalid data: {serializer.errors}")
+        
+        data = serializer.validated_data
+        
+        # Get recording
+        try:
+            recording = Recording.objects.get(id=data['recording_id'], recorded_by_client=client)
+        except Recording.DoesNotExist:
+            raise HttpError(404, "Recording not found")
+        
+        # Update recording status
+        recording.status = data['status']
+        
+        if 'progress' in data and data['progress'] is not None:
+            # Store progress in a JSON field or custom field
+            pass
+        
+        if 'frames_recorded' in data and data['frames_recorded'] is not None:
+            # Could store in a custom field if needed
+            pass
+        
+        if 'file_size' in data and data['file_size'] is not None:
+            recording.file_size = data['file_size']
+        
+        if 'error_message' in data and data['error_message']:
+            recording.error_message = data['error_message']
+        
+        if data['status'] == 'completed':
+            recording.end_time = timezone.now()
+            if recording.start_time:
+                recording.duration = recording.end_time - recording.start_time
+            if 'gcp_path' in data and data['gcp_path']:
+                recording.file_path = data['gcp_path']
+                recording.storage_type = 'gcp'
+                recording.upload_status = 'completed'
+        elif data['status'] == 'failed':
+            recording.upload_status = 'failed'
+        elif data['status'] == 'recording':
+            recording.upload_status = 'uploading'
+        
+        recording.save()
+        
+        return {"message": "Recording status updated successfully"}
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating recording status: {str(e)}")
+        raise HttpError(500, f"Error updating status: {str(e)}")
+
+
+@local_client_router.post(
+    "/local-client/recordings/register",
+    summary="Register new recording",
+    description="Register a new recording before starting"
+)
+def register_recording(request, camera_id: str, schedule_id: str = None, recording_name: str = None):
+    """Register a new recording"""
+    from django.utils import timezone
+    
+    try:
+        # Authenticate client
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            raise HttpError(401, "Missing or invalid authorization token")
+        
+        client_token = auth_header.split('Bearer ')[1]
+        
+        try:
+            client = LocalRecordingClient.objects.get(client_token=client_token)
+        except LocalRecordingClient.DoesNotExist:
+            raise HttpError(401, "Invalid client token")
+        
+        # Get camera
+        try:
+            camera = Camera.objects.get(id=camera_id, is_active=True)
+            if camera not in client.assigned_cameras.all():
+                raise HttpError(403, "Camera not assigned to this client")
+            if camera.recording_mode != 'local_client':
+                raise HttpError(403, f"Camera recording mode is '{camera.recording_mode}', not 'local_client'")
+        except Camera.DoesNotExist:
+            raise HttpError(404, f"Camera not found or inactive: {camera_id}")
+        except Camera.MultipleObjectsReturned:
+            # Should not happen with UUID, but handle just in case
+            camera = Camera.objects.filter(id=camera_id, is_active=True).first()
+            if not camera:
+                raise HttpError(404, f"Camera not found: {camera_id}")
+        
+        # Get schedule if provided
+        schedule = None
+        if schedule_id:
+            try:
+                schedule = RecordingSchedule.objects.get(id=schedule_id)
+            except RecordingSchedule.DoesNotExist:
+                pass
+        
+        # Create recording
+        if not recording_name:
+            recording_name = f"Recording - {camera.name} - {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        
+        recording = Recording.objects.create(
+            camera=camera,
+            schedule=schedule,
+            name=recording_name,
+            start_time=timezone.now(),
+            status='scheduled',
+            recorded_by_client=client,
+            upload_status='pending'
+        )
+        
+        return {
+            "recording_id": str(recording.id),
+            "message": "Recording registered successfully"
+        }
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        logger.error(f"Error registering recording: {str(e)}")
+        raise HttpError(500, f"Error registering recording: {str(e)}")
+
+
+@local_client_router.post(
+    "/local-client/heartbeat",
+    summary="Send heartbeat",
+    description="Send periodic heartbeat with system status"
+)
+def send_heartbeat(request):
+    """Send heartbeat from local client"""
+    from django.utils import timezone
+    import json
+    
+    try:
+        # Parse request body
+        body = json.loads(request.body)
+        
+        # Authenticate client
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            raise HttpError(401, "Missing or invalid authorization token")
+        
+        client_token = auth_header.split('Bearer ')[1]
+        
+        try:
+            client = LocalRecordingClient.objects.get(client_token=client_token)
+        except LocalRecordingClient.DoesNotExist:
+            raise HttpError(401, "Invalid client token")
+        
+        # Validate data using serializer
+        serializer = HeartbeatSerializer(data=body)
+        if not serializer.is_valid():
+            raise HttpError(400, f"Invalid data: {serializer.errors}")
+        
+        data = serializer.validated_data
+        
+        # Update client status
+        client.mark_online()
+        if hasattr(request, 'META') and 'REMOTE_ADDR' in request.META:
+            client.ip_address = request.META['REMOTE_ADDR']
+        if 'system_info' in data and data['system_info']:
+            client.system_info = data['system_info']
+        client.save()
+        
+        return {
+            "message": "Heartbeat received",
+            "client_id": str(client.id),
+            "status": client.status
+        }
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing heartbeat: {str(e)}")
+        raise HttpError(500, f"Error processing heartbeat: {str(e)}")
+
+
+@local_client_router.get(
+    "/local-client/cameras",
+    summary="Get cameras for local client",
+    description="Returns cameras assigned to this client"
+)
+def get_local_client_cameras(request):
+    """Get cameras assigned to local client"""
+    try:
+        # Authenticate client
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            raise HttpError(401, "Missing or invalid authorization token")
+        
+        client_token = auth_header.split('Bearer ')[1]
+        
+        try:
+            client = LocalRecordingClient.objects.get(client_token=client_token)
+        except LocalRecordingClient.DoesNotExist:
+            raise HttpError(401, "Invalid client token")
+        
+        # Update heartbeat
+        client.mark_online()
+        
+        # Get assigned cameras
+        cameras = client.assigned_cameras.filter(recording_mode='local_client', is_active=True)
+        
+        # Check if no cameras assigned
+        if not cameras.exists():
+            logger.info(f"Client {client.name} has no assigned cameras")
+            return []  # Return empty list instead of error
+        
+        serializer = CameraSerializer(cameras, many=True)
+        data = serializer.data
+        
+        # Validate that we have data
+        if not data:
+            return []
+        
+        # Transform to match client's expected format
+        result = []
+        for item in data:
+            try:
+                # Validate required fields
+                if not all(k in item for k in ['id', 'name', 'rtsp_url']):
+                    logger.warning(f"Camera missing required fields: {item.get('id', 'unknown')}")
+                    continue
+                
+                camera_data = {
+                    'id': str(item['id']),
+                    'name': item['name'],
+                    'ip_address': item.get('ip_address', ''),
+                    'rtsp_url': item.get('rtsp_url', ''),
+                    'rtsp_url_sub': item.get('rtsp_url_sub'),
+                    'camera_type': item.get('camera_type', 'rtsp'),
+                    'location': item.get('location'),
+                    'record_quality': item.get('record_quality', 'medium')
+                }
+                result.append(camera_data)
+            except Exception as e:
+                logger.error(f"Error transforming camera {item.get('id', 'unknown')}: {str(e)}")
+                continue
+        
+        return result
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching cameras for local client: {str(e)}")
+        raise HttpError(500, f"Error fetching cameras: {str(e)}")
+
+
 # Include the router
 api.add_router("", router)  # No prefix since we want /cameras/, not /cctv/cameras/
+api.add_router("", local_client_router)  # Add local client router for /cctv/local-client/*
+
+# Create duplicate endpoints for direct API access (without /local-client prefix)
+# This allows /api/local-client/* to work directly (for client compatibility)
+local_client_direct_router = Router(tags=["Local Client"])
+
+# Add health check for local-client API
+@local_client_direct_router.get("/health", summary="Health Check", description="Check if the API is running", tags=["Local Client"])
+def local_client_health_check(request):
+    """Health check endpoint for local client API"""
+    return {
+        "status": "healthy",
+        "service": "Local Client API",
+        "version": "1.0.0"
+    }
+
+# Register all endpoints on the direct router without the /local-client prefix
+local_client_direct_router.get("/schedules", summary="Get schedules for local client", description="Returns all active schedules for cameras assigned to this client")(get_local_client_schedules)
+local_client_direct_router.post("/recordings/status", summary="Update recording status", description="Update recording status from local client")(update_recording_status)
+local_client_direct_router.post("/recordings/register", summary="Register new recording", description="Register a new recording before starting")(register_recording)
+local_client_direct_router.post("/heartbeat", summary="Send heartbeat", description="Send periodic heartbeat with system status")(send_heartbeat)
+local_client_direct_router.get("/cameras", summary="Get cameras for local client", description="Returns cameras assigned to this client")(get_local_client_cameras)
+
+# Mount the direct router to the separate API instance
+local_client_api.add_router("", local_client_direct_router)

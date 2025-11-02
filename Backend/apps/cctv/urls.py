@@ -1,38 +1,25 @@
 from django.urls import path, include
 from django.views.generic import TemplateView
-from . import views
+from django.http import JsonResponse
 
 app_name = 'cctv'
 
+# Simple health check view
+def health_check(request):
+    return JsonResponse({
+        'status': 'healthy',
+        'service': 'CCTV System',
+        'message': 'CCTV system is operational'
+    })
+
 urlpatterns = [
-    # Admin URLs
-    path('admin/', include('django.contrib.admin.urls')),
-    
-    # API URLs
-    path('api/v0/', include('apps.cctv.api')),
-    
-    # Web interface URLs
+    # Web interface URLs (dashboard templates)
     path('', TemplateView.as_view(template_name='cctv/multi_stream_dashboard.html'), name='dashboard'),
     path('dashboard/', TemplateView.as_view(template_name='cctv/multi_stream_dashboard.html'), name='dashboard'),
     path('http-streaming/', TemplateView.as_view(template_name='cctv/http_stream_dashboard.html'), name='http_streaming'),
     
-    # Individual camera views
-    path('camera/<uuid:camera_id>/', views.camera_detail, name='camera_detail'),
-    path('camera/<uuid:camera_id>/stream/', views.camera_stream, name='camera_stream'),
+    # Health check for web views
+    path('health/', health_check, name='health_check'),
     
-    # Recording views
-    path('recordings/', views.recording_list, name='recording_list'),
-    path('recording/<uuid:recording_id>/', views.recording_detail, name='recording_detail'),
-    
-    # Schedule views
-    path('schedules/', views.schedule_list, name='schedule_list'),
-    path('schedule/<uuid:schedule_id>/', views.schedule_detail, name='schedule_detail'),
-    
-    # Live stream views
-    path('streams/', views.stream_list, name='stream_list'),
-    path('stream/<uuid:stream_id>/', views.stream_detail, name='stream_detail'),
-    
-    # Test and diagnostic URLs
-    path('test/', views.test_page, name='test_page'),
-    path('health/', views.health_check, name='health_check'),
+    # Note: For camera views, recordings, schedules, and streams, use the REST API endpoints at /v0/api/cctv/
 ]

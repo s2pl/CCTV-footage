@@ -61,6 +61,12 @@ class Camera(models.Model):
     
     # Recording settings
     auto_record = models.BooleanField(default=False, help_text="Enable automatic recording")
+    recording_mode = models.CharField(
+        max_length=15,
+        choices=[('backend', 'Backend Recording'), ('local_client', 'Local Client Recording')],
+        default='backend',
+        help_text="Where recordings should be performed"
+    )
     record_quality = models.CharField(
         max_length=10, 
         choices=[('high', 'High'), ('medium', 'Medium'), ('low', 'Low')],
@@ -343,6 +349,27 @@ class Recording(models.Model):
     frame_rate = models.PositiveIntegerField(blank=True, null=True, help_text="FPS")
     codec = models.CharField(max_length=10, blank=True, null=True, help_text="Video codec used (e.g., H264)")
     
+    # Local client tracking
+    recorded_by_client = models.ForeignKey(
+        'LocalRecordingClient',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recordings',
+        help_text="Local client that recorded this video"
+    )
+    upload_status = models.CharField(
+        max_length=15,
+        choices=[
+            ('pending', 'Pending Upload'),
+            ('uploading', 'Uploading'),
+            ('completed', 'Upload Completed'),
+            ('failed', 'Upload Failed')
+        ],
+        default='pending',
+        help_text="Status of GCP upload"
+    )
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -481,6 +508,63 @@ class LiveStream(models.Model):
     
     def __str__(self):
         return f"{self.camera.name} ({self.start_time})"
+
+
+class LocalRecordingClient(models.Model):
+    """Model for tracking local recording client systems"""
+    
+    CLIENT_STATUS_CHOICES = [
+        ('online', 'Online'),
+        ('offline', 'Offline'),
+        ('error', 'Error'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, help_text="Client system name/location")
+    client_token = models.CharField(max_length=255, unique=True, help_text="Authentication token for this client")
+    ip_address = models.GenericIPAddressField(blank=True, null=True, help_text="Last known IP address")
+    last_heartbeat = models.DateTimeField(blank=True, null=True, help_text="Last heartbeat timestamp")
+    status = models.CharField(
+        max_length=10,
+        choices=CLIENT_STATUS_CHOICES,
+        default='offline',
+        help_text="Current client status"
+    )
+    system_info = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="System information (CPU, RAM, disk space, etc.)"
+    )
+    assigned_cameras = models.ManyToManyField(
+        Camera,
+        related_name='recording_clients',
+        blank=True,
+        help_text="Cameras assigned to this client for recording"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-last_heartbeat']
+        verbose_name = 'Local Recording Client'
+        verbose_name_plural = 'Local Recording Clients'
+    
+    def __str__(self):
+        return f"{self.name} ({self.status})"
+    
+    def mark_online(self):
+        """Mark client as online"""
+        from django.utils import timezone
+        self.status = 'online'
+        self.last_heartbeat = timezone.now()
+        self.save(update_fields=['status', 'last_heartbeat', 'updated_at'])
+    
+    def mark_offline(self):
+        """Mark client as offline"""
+        self.status = 'offline'
+        self.save(update_fields=['status', 'updated_at'])
 
 
 class GCPVideoTransfer(models.Model):

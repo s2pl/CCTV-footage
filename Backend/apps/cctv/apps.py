@@ -16,13 +16,9 @@ class CctvConfig(AppConfig):
             from . import signals
             logger.info("✅ CCTV app signals loaded successfully")
             
-            # Check if URL configuration is available
-            try:
-                from django.urls import reverse
-                reverse('cctv:camera-list')
-                logger.info("🔗 CCTV API URLs configured correctly")
-            except:
-                logger.warning("⚠️ Warning: CCTV API missing URL configuration")
+            # CCTV uses Django Ninja REST API, not traditional Django URLs
+            # API endpoints are available at /v0/api/cctv/
+            logger.info("🔗 CCTV REST API configured at /v0/api/cctv/")
             
             # Warm up codec cache in background (don't block startup)
             import threading

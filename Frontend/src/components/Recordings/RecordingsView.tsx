@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Download, Trash2, Play, HardDrive, AlertCircle, CheckCircle, X, ExternalLink, RefreshCw } from 'lucide-react';
+import { useToast } from '../Common/ToastContainer';
 import { Recording } from '../../services/types';
 import { useCCTV } from '../../hooks/useCCTV';
 import GCPTransferPanel from './GCPTransferPanel';
 
 const RecordingsView: React.FC = () => {
+  const { showSuccess, showError, showWarning } = useToast();
   const { cameras, recordings, recordingStats, loading, error, clearError, refreshAll } = useCCTV();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [cameraFilter, setCameraFilter] = useState<string>('all');
   const [selectedRecordings, setSelectedRecordings] = useState<Set<string>>(new Set());
-  const [success, setSuccess] = useState<string | null>(null);
+  const [localSuccess, setLocalSuccess] = useState<string | null>(null);
   const [playingRecording, setPlayingRecording] = useState<Recording | null>(null);
 
   // Ensure cameras and recordings are arrays before using array methods
@@ -55,13 +57,19 @@ const RecordingsView: React.FC = () => {
       try {
         // TODO: Implement delete functionality when available in the API
         console.log('Delete recordings:', Array.from(selectedRecordings));
-        alert('Delete functionality is not yet implemented. Please check with the backend team.');
+        showWarning(
+          'Feature Not Available',
+          'Delete functionality is not yet implemented. Please check with the backend team.'
+        );
         
         // For now, just clear the selection
         setSelectedRecordings(new Set());
       } catch (error) {
         console.error('Error deleting recordings:', error);
-        alert('Error deleting recordings. Please try again.');
+        showError(
+          'Delete Failed',
+          'Error deleting recordings. Please try again.'
+        );
       }
     }
   };
@@ -70,23 +78,22 @@ const RecordingsView: React.FC = () => {
   const handleDownloadRecording = async (recording: Recording) => {
     try {
       if (!recording.file_exists) {
-        alert('File does not exist on the server. Cannot download.');
+        showError('Download Failed', 'File does not exist on the server. Cannot download.');
         return;
       }
 
       if (!recording.file_url) {
-        alert('No file URL available for this recording.');
+        showError('Download Failed', 'No file URL available for this recording.');
         return;
       }
 
       // Open the exact URL passed by file_url without any modifications
       window.open(recording.file_url, '_blank');
       
-      setSuccess(`Download started for "${recording.name}"`);
-      setTimeout(() => setSuccess(null), 3000);
+      showSuccess('Download Started', `Download started for "${recording.name}"`);
     } catch (error) {
       console.error('Error downloading recording:', error);
-      alert('Error downloading recording. Please try again.');
+      showError('Download Failed', 'Error downloading recording. Please try again.');
     }
   };
 
@@ -94,19 +101,19 @@ const RecordingsView: React.FC = () => {
   const handlePlayRecording = async (recording: Recording) => {
     try {
       if (!recording.file_exists) {
-        alert('File does not exist on the server. Cannot play video.');
+        showError('Playback Failed', 'File does not exist on the server. Cannot play video.');
         return;
       }
 
       if (!recording.file_url) {
-        alert('No file URL available for this recording.');
+        showError('Playback Failed', 'No file URL available for this recording.');
         return;
       }
 
       setPlayingRecording(recording);
     } catch (error) {
       console.error('Error playing recording:', error);
-      alert('Error playing recording. Please try again.');
+      showError('Playback Failed', 'Error playing recording. Please try again.');
     }
   };
 
@@ -355,12 +362,12 @@ const RecordingsView: React.FC = () => {
         </div>
       )}
 
-      {success && (
+      {localSuccess && (
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center">
           <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-          <span className="text-green-700 dark:text-green-300">{success}</span>
+          <span className="text-green-700 dark:text-green-300">{localSuccess}</span>
           <button
-            onClick={() => setSuccess(null)}
+            onClick={() => setLocalSuccess(null)}
             className="ml-auto text-green-400 hover:text-green-600"
           >
             <X className="w-5 h-5" />

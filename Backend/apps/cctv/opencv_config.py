@@ -2,9 +2,22 @@
 OpenCV configuration and optimization settings for CCTV streaming
 """
 
-import cv2
 import logging
 import os
+import warnings
+
+# Suppress OpenCV warnings before importing cv2
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', message='.*FFMPEG.*')
+warnings.filterwarnings('ignore', message='.*codec.*')
+warnings.filterwarnings('ignore', message='.*tag.*')
+warnings.filterwarnings('ignore', message='.*fallback.*')
+
+import cv2
+
+# Suppress cv2 logging
+logging.getLogger('cv2').setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.WARNING)  # Don't let cv2 messages through
 
 # Set environment variables to prevent FFmpeg threading issues
 os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'threads;1|timeout;5000000'

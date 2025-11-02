@@ -126,13 +126,24 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('DB_NAME', 'RSTP2'),
+#         'USER': os.environ.get('DB_USER', 'postgres'),
+#         'PASSWORD': os.environ.get('DB_PASSWORD', '@Rishi21'),
+#         'HOST': os.environ.get('DB_HOST', 'localhost'),
+#         'PORT': os.environ.get('DB_PORT', '5432'),
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'rstp'),
-        'USER': os.environ.get('DB_USER', 'cctv-db'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'D,=GJ?o:9D8#;7"?'),
-        'HOST': os.environ.get('DB_HOST', '35.200.179.174'),
+        'NAME': os.environ.get('DB_NAME', 'postgres'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '$Rstp1213'),
+        'HOST': os.environ.get('DB_HOST', 'cctv-rstp.c1iwqog4anjc.ap-south-1.rds.amazonaws.com'),
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }

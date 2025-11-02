@@ -11,7 +11,12 @@ from .models import Scraper
 from apps.users.permissions import RoleBasedPermission, check_app_access, check_role_access
 
 # Create a Ninja API instance with CSRF disabled for testing
-api = NinjaAPI(urls_namespace="general_system", csrf=False)
+api = NinjaAPI(
+    title="General System API",
+    version="6.0.0",
+    urls_namespace="general_system",
+    csrf=False
+)
 
 # Create router for general endpoints
 router = Router(tags=["General System"])

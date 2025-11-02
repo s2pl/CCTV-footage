@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Eye, EyeOff } from 'lucide-react';
+import { X, Save, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useCCTV } from '../../hooks/useCCTV';
+import { useToast } from '../Common/ToastContainer';
 import { Camera, CameraRegistration } from '../../services/types';
 
 interface CameraFormProps {
@@ -10,6 +11,7 @@ interface CameraFormProps {
 
 const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
   const { createCamera, updateCamera } = useCCTV();
+  const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState<CameraRegistration>({
     name: '',
     description: '',
@@ -31,6 +33,7 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
   const [isFormReady, setIsFormReady] = useState(false);
   const [cameraId, setCameraId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (camera && camera.id && camera.id !== cameraId) {
@@ -92,6 +95,13 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
     try {
       // Auto-generate RTSP URL from components
       const auth = formData.username ? `${formData.username}${formData.password ? ':' + formData.password : ''}@` : '';
@@ -106,13 +116,26 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
       
       if (camera) {
         await updateCamera(camera.id, submissionData);
+        showSuccess(
+          'Camera Updated',
+          `Camera "${formData.name}" has been updated successfully.`
+        );
       } else {
         await createCamera(submissionData);
+        showSuccess(
+          'Camera Created',
+          `Camera "${formData.name}" has been created successfully.`
+        );
       }
       onClose();
     } catch (error) {
       console.error('Error saving camera:', error);
-      // Error is handled by the hook and displayed in the parent component
+      showError(
+        camera ? 'Update Failed' : 'Creation Failed',
+        error instanceof Error ? error.message : 'An unexpected error occurred while saving the camera.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -451,16 +474,27 @@ const CameraForm: React.FC<CameraFormProps> = ({ camera, onClose }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                disabled={isSubmitting}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="w-4 h-4" />
-                <span>{camera ? 'Update Camera' : 'Add Camera'}</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{camera ? 'Updating...' : 'Creating...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>{camera ? 'Update Camera' : 'Add Camera'}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

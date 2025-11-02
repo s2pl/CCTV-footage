@@ -12,6 +12,7 @@ import {
   X,
   ExternalLink
 } from 'lucide-react';
+import { useToast } from '../Common/ToastContainer';
 import { useGCPTransfer } from '../../hooks/useGCPTransfer';
 import { GCPTransferStatus } from '../../services/types';
 
@@ -24,6 +25,7 @@ const GCPTransferPanel: React.FC<GCPTransferPanelProps> = ({
   selectedRecordingIds, 
   onTransferComplete 
 }) => {
+  const { showSuccess: showToastSuccess, showError: showToastError } = useToast();
   const {
     transfers,
     transferStats,
@@ -36,8 +38,7 @@ const GCPTransferPanel: React.FC<GCPTransferPanelProps> = ({
     transferSpecificRecordings,
     clearError,
     clearSuccess,
-    hasActiveTransfers,
-    getTransferProgress
+    hasActiveTransfers
   } = useGCPTransfer();
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -72,21 +73,47 @@ const GCPTransferPanel: React.FC<GCPTransferPanelProps> = ({
   }, [success, clearSuccess]);
 
   const handleTransferAll = async () => {
-    const result = await transferAllRecordings(batchSize);
-    if (result && onTransferComplete) {
-      onTransferComplete();
+    try {
+      const result = await transferAllRecordings(batchSize);
+      if (result) {
+        showToastSuccess(
+          'Transfer Started',
+          'All recordings have been queued for transfer to GCP.'
+        );
+        if (onTransferComplete) {
+          onTransferComplete();
+        }
+      }
+    } catch (error) {
+      showToastError(
+        'Transfer Failed',
+        error instanceof Error ? error.message : 'Failed to start transfer.'
+      );
     }
   };
 
   const handleTransferSelected = async () => {
     if (selectedRecordingIds.length === 0) {
-      alert('Please select recordings to transfer');
+      showToastError('No Selection', 'Please select recordings to transfer');
       return;
     }
     
-    const result = await transferSpecificRecordings(selectedRecordingIds, batchSize);
-    if (result && onTransferComplete) {
-      onTransferComplete();
+    try {
+      const result = await transferSpecificRecordings(selectedRecordingIds, batchSize);
+      if (result) {
+        showToastSuccess(
+          'Transfer Started',
+          `${selectedRecordingIds.length} recording(s) have been queued for transfer to GCP.`
+        );
+        if (onTransferComplete) {
+          onTransferComplete();
+        }
+      }
+    } catch (error) {
+      showToastError(
+        'Transfer Failed',
+        error instanceof Error ? error.message : 'Failed to start transfer.'
+      );
     }
   };
 
