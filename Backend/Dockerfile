@@ -2,9 +2,9 @@ FROM python:3.12-alpine
 
 WORKDIR /app
 
-COPY requirements-ubuntu.txt .
+COPY requirements.txt .
 
-RUN pip install -r requirements-ubuntu.txt
+RUN pip install -r requirements.txt
 
 COPY . .
 
