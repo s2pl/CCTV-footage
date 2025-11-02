@@ -38,7 +38,7 @@ ALLOWED_HOSTS = [
     "192.168.1.2",
     "rstpfe.storage.googleapis.com",
     "cctvapi.suvidhaen.com",
-    
+    "13.233.78.193",  # Added as per instruction
 ]
 
 
@@ -330,7 +330,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://35.200.133.126",
     "http://35.200.133.126:8000",
 
-    
+    "http://13.233.78.193",  # Added as per instruction
     
     FRONTEND_URL,  # Using the FRONTEND_URL from environment variables
 ]
@@ -573,7 +573,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://35.200.133.126",
     "https://rstpfe.storage.googleapis.com",
     "http://rstpfe.storage.googleapis.com",
-    
+    "http://13.233.78.193",  # Added as per instruction
 ]
 CSRF_COOKIE_SECURE = False  # Set to False in development if not using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access to the cookie
