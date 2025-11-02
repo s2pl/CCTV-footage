@@ -72,7 +72,7 @@ Backend/media/recordings/
 Backend/media/logs/
 Backend/media/thumbnails/
 Backend/media/test_recordings/
-
+Backend/rstp-server/
 # Test recordings and large media files
 Backend/test_recording/
 Backend/test_recording.py
