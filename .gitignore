@@ -100,8 +100,8 @@ lerna-debug.log*
 .pnpm-debug.log*
 
 # Frontend build
-Frontend/dist/
-Frontend/build/
+
+
 Frontend/.vite/
 Frontend/.next/
 Frontend/out/
