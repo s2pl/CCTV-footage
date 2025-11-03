@@ -263,7 +263,21 @@ This system uses Tailscale for secure remote access to IP cameras. To add a came
 #### 1. Install Tailscale on the Camera Network
 Install Tailscale on a device (router, server, or computer) that has access to your camera network.
 
-#### 2. Configure Tailscale Routes
+
+#### 2. Configure Tailscale Routes Forwardings
+```bash
+    curl -fsSL https://tailscale.com/install.sh | sh
+    curl -fsSL https://tailscale.com/install.sh | sh~
+    sudo tailscale up
+    tailscale status
+    sudo sysctl -w net.ipv4.ip_forward=1
+    sudo sysctl -w net.ipv6.conf.all.forwarding=1
+    sudo sysctl -w net.ipv4.ip_forward=1
+    sudo sysctl -w net.ipv6.conf.all.forwarding=1
+    sudo tailscale up --accept-routes=true
+```
+   
+#### 3. Configure Tailscale Routes
 Use the following command to advertise your camera network routes:
 
 ```bash
