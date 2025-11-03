@@ -530,6 +530,24 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+
+
+## AWS
+Dev:
+1. Ec2
+2. DB
+3. S3: cctv-footage-bucket
+
+UAT:
+1. Ec2
+2. DB
+3. S3: cctv-footage-bucket-uat
+
+Prod:
+1. Ec2
+2. DB
+3. S3: cctv-footage-bucket-prod
+
 ---
 
 **Note**: This is a comprehensive CCTV management system designed for security monitoring, live streaming, and recording management. Ensure proper security measures and compliance with local regulations when deploying in production environments.
