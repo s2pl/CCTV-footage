@@ -2,6 +2,24 @@
 
 A comprehensive Django app for managing IP CCTV cameras with RTSP streaming, recording capabilities, and scheduling features.
 
+## 🚀 Recent Updates (November 2025)
+
+### ✅ Fixed Recording Serializer Error
+- **Issue**: `recorded_by_client_name` field was missing from RecordingSerializer
+- **Status**: RESOLVED ✅
+- **Details**: Implemented proper SerializerMethodField to retrieve local client names
+
+### ✅ AWS S3 Cloud Storage Integration
+- **Feature**: Full AWS S3 storage support for video recordings
+- **Status**: IMPLEMENTED ✅
+- **Capabilities**:
+  - Automatic upload to AWS S3
+  - Presigned URL generation for secure access
+  - Fallback to local storage on failure
+  - Support for dual AWS+GCP redundancy
+- **Documentation**: See [AWS_S3_SETUP.md](./AWS_S3_SETUP.md) for detailed setup guide
+- **Test Script**: Run `python Backend/test_aws_connection.py` to verify connection
+
 ## Features
 
 ### 🎥 Camera Management

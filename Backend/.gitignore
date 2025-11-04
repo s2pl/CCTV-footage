@@ -47,6 +47,14 @@ staticfiles/
 .env.local
 .env.*.local
 
+# Credentials configuration file (NEVER COMMIT!)
+config/credentials.py
+
+# AWS and GCP credentials
+*.pem
+credentials.json
+*credentials*.json
+
 # Coverage
 htmlcov/
 .tox/

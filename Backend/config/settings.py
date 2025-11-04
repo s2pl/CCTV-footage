@@ -17,6 +17,16 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Import credentials from separate config file
+try:
+    from .credentials import SECRET_KEY, DATABASE, EMAIL, AWS, GCP, JWT, ADMIN
+except ImportError:
+    raise ImportError(
+        "credentials.py not found! Please copy credentials.example.py to credentials.py "
+        "and fill in your actual credentials."
+    )
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
  
@@ -24,8 +34,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# Use environment variables for sensitive settings
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-y%9q4uu29p()^t)ggj4p3!vzinf!d#et4l^e6-6#os)j1(4c2_')
+# Secret key is now imported from credentials.py
+# SECRET_KEY is imported above
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = os.getenv('DEBUG', 'True') == 'True'
@@ -127,40 +137,30 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DB_NAME', 'RSTP2'),
-#         'USER': os.environ.get('DB_USER', 'postgres'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD', '@Rishi21'),
-#         'HOST': os.environ.get('DB_HOST', 'localhost'),
-#         'PORT': os.environ.get('DB_PORT', '5432'),
-#     }
-# }
-
+# Database credentials are now imported from credentials.py
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'postgres'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', '$Rstp1213'),
-        'HOST': os.environ.get('DB_HOST', 'cctv-rstp.c1iwqog4anjc.ap-south-1.rds.amazonaws.com'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': DATABASE['NAME'],
+        'USER': DATABASE['USER'],
+        'PASSWORD': DATABASE['PASSWORD'],
+        'HOST': DATABASE['HOST'],
+        'PORT': DATABASE['PORT'],
     }
 }
 
 
 APPEND_SLASH = False
 
-#Mailer Settings
+#Mailer Settings - Now using credentials from credentials.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Fixed the typo
-EMAIL_PORT = 587  # Standard TLS port
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False  # Using TLS for port 587
-EMAIL_HOST_USER = 'rishikeshjadhav21@gmail.com'
-EMAIL_HOST_PASSWORD = 'pioccvzwimojoyss'
-DEFAULT_FROM_EMAIL = 'rishikeshjadhav21@gmail.com'
+EMAIL_HOST = EMAIL['HOST']
+EMAIL_PORT = EMAIL['PORT']
+EMAIL_USE_TLS = EMAIL['USE_TLS']
+EMAIL_USE_SSL = EMAIL['USE_SSL']
+EMAIL_HOST_USER = EMAIL['HOST_USER']
+EMAIL_HOST_PASSWORD = EMAIL['HOST_PASSWORD']
+DEFAULT_FROM_EMAIL = EMAIL['DEFAULT_FROM']
 
 # OTP specific email settings
 OTP_EMAIL_FROM = 'noreply@yourdomain.com'
@@ -238,19 +238,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Cloud Storage Configuration
 # ================================
 # Choose storage backend: 'GCP' or 'AWS' or 'BOTH'
-CLOUD_STORAGE_BACKEND = os.getenv('CLOUD_STORAGE_BACKEND', 'AWS')  # Default to AWS
+CLOUD_STORAGE_BACKEND = 'AWS'  # Default to AWS
 
 # ================================
 # AWS S3 Storage Configuration
 # ================================
-# AWS Credentials
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', 'AKIAXTORPEGA2Y4Q7JCI')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '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')
-AWS_SESSION_TOKEN = os.getenv('AWS_SESSION_TOKEN', '')  # Optional: for temporary credentials
-AWS_REGION_NAME = os.getenv('AWS_REGION_NAME', 'ap-south-1')  # Mumbai region
+# AWS Credentials - Now using credentials from credentials.py
+AWS_ACCESS_KEY_ID = AWS['ACCESS_KEY_ID']
+AWS_SECRET_ACCESS_KEY = AWS['SECRET_ACCESS_KEY']
+AWS_SESSION_TOKEN = AWS['SESSION_TOKEN']
+AWS_REGION_NAME = AWS['REGION_NAME']
 
 # S3 Bucket Settings
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', 'cctv-footage-bucket')
+AWS_STORAGE_BUCKET_NAME = AWS['STORAGE_BUCKET_NAME']
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION_NAME}.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',  # Cache for 1 day
@@ -284,11 +284,11 @@ AWS_MEDIA_LOCATION = 'media'         # Folder for media files
 # ================================
 # GCP Cloud Storage Configuration (Legacy/Backup)
 # ================================
-# Main GCP Storage Settings
-GCP_STORAGE_BUCKET_NAME = os.getenv('GCP_STORAGE_BUCKET_NAME', 'cctv_feed')
-GCP_STORAGE_PROJECT_ID = os.getenv('GCP_STORAGE_PROJECT_ID', 'learningdevops-455404')
-GCP_STORAGE_CREDENTIALS_PATH = os.getenv('GCP_STORAGE_CREDENTIALS_PATH', 'credentials/learningdevops-455404-e1cd1646efa3.json')
-GCP_STORAGE_USE_GCS = os.getenv('GCP_STORAGE_USE_GCS', 'False').lower() == 'true'
+# Main GCP Storage Settings - Now using credentials from credentials.py
+GCP_STORAGE_BUCKET_NAME = GCP['STORAGE_BUCKET_NAME']
+GCP_STORAGE_PROJECT_ID = GCP['STORAGE_PROJECT_ID']
+GCP_STORAGE_CREDENTIALS_PATH = GCP['STORAGE_CREDENTIALS_PATH']
+GCP_STORAGE_USE_GCS = GCP['STORAGE_USE_GCS']
 
 # GCP Storage Behavior Settings
 GCP_STORAGE_CLEANUP_LOCAL = True     # Clean up local files after successful GCP upload
@@ -418,12 +418,12 @@ REST_FRAMEWORK = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField';
 
 
-# Custom JWT Token Settings
+# Custom JWT Token Settings - Now using credentials from credentials.py
 CUSTOM_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Access token expires in 1 day
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),  # Refresh token expires in 30 days
-    'ALGORITHM': os.getenv('JWT_ALGORITHM', 'HS256'),
-    'SIGNING_KEY': os.getenv('JWT_SECRET_KEY', SECRET_KEY),
+    'ALGORITHM': JWT['ALGORITHM'],
+    'SIGNING_KEY': JWT['SECRET_KEY'],
 }
 
 # Django Ninja Settings
@@ -522,14 +522,14 @@ ADMIN_SITE_HEADER = "Your Project Administration"
 ADMIN_SITE_TITLE = "Your Project Admin Portal"
 ADMIN_INDEX_TITLE = "Welcome to Your Project Admin"
 
-# Admin Security Settings
-ADMIN_URL = os.getenv('ADMIN_URL', 'admin/')  # Custom admin URL
+# Admin Security Settings - Now using credentials from credentials.py
+ADMIN_URL = ADMIN['URL']  # Custom admin URL
 ADMIN_HONEYPOT = True  # Enable fake admin login page
 ADMIN_HONEYPOT_EMAIL_ADMINS = True  # Send email on failed login attempts
 
 # Admin Email Settings
 ADMINS = [
-    ('Admin Name', 'admin@example.com'),
+    (ADMIN['NAME'], ADMIN['EMAIL']),
 ]
 MANAGERS = ADMINS
 
