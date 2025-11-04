@@ -50,11 +50,13 @@ ALLOWED_HOSTS = [
     "cctvapi.suvidhaen.com",
     "13.233.78.193",  # Added as per instruction
     "cctv.suvidhaen.com",
+    "13.233.150.167",
+    
 ]
 
 
 
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://cctv.suvidhaen.com')
 
 
 
@@ -332,7 +334,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://35.200.133.126:8000",
 
     "http://13.233.78.193",  # Added as per instruction
+    "http://13.233.150.167",
     "https://cctv.suvidhaen.com",
+    "https://cctvapi.suvidhaen.com",
     
     FRONTEND_URL,  # Using the FRONTEND_URL from environment variables
 ]
@@ -576,6 +580,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://rstpfe.storage.googleapis.com",
     "http://rstpfe.storage.googleapis.com",
     "http://13.233.78.193",  # Added as per instruction
+    "http://13.233.150.167",
     "https://cctv.suvidhaen.com",
     "https://cctvapi.suvidhaen.com",
 ]
