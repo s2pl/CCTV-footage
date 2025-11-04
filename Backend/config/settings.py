@@ -584,7 +584,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://cctv.suvidhaen.com",
     "https://cctvapi.suvidhaen.com",
 ]
-CSRF_COOKIE_SECURE = False  # Set to False in development if not using HTTPS
+CSRF_COOKIE_SECURE = True  # Set to False in development if not using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access to the cookie
 CSRF_USE_SESSIONS = False  # Store CSRF token in cookie instead of session
 
