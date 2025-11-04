@@ -319,7 +319,7 @@ class Recording(models.Model):
     file_path = models.CharField(max_length=500, help_text="Path to recording file")
     storage_type = models.CharField(
         max_length=10, 
-        choices=[('local', 'Local Storage'), ('gcp', 'Google Cloud Storage')], 
+        choices=[('local', 'Local Storage'), ('aws', 'AWS S3 Storage'), ('gcp', 'Google Cloud Storage')], 
         default='local',
         help_text="Where the recording file is stored"
     )

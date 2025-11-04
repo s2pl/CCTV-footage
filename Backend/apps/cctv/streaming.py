@@ -746,7 +746,7 @@ class RTSPRecordingManager:
                 logger.error(f"Error cleaning up active recording: {str(e)}")
     
     def _upload_completed_recording(self, recording, local_file_path):
-        """Upload completed recording to GCP storage if enabled"""
+        """Upload completed recording to cloud storage (AWS S3 or GCP) if enabled"""
         upload_success = False
         
         try:
@@ -754,13 +754,17 @@ class RTSPRecordingManager:
             from django.conf import settings
             import time
             
-            # Only upload to GCP if it's enabled and configured
-            if not getattr(settings, 'GCP_STORAGE_USE_GCS', False):
-                logger.debug(f"GCP storage not enabled, keeping recording {recording.id} in local storage")
-                return True  # Not an error, just not configured for GCP
-                
-            if not storage_service.use_gcp:
-                logger.debug(f"GCP storage service not available, keeping recording {recording.id} in local storage")
+            # Check which cloud storage backend is configured
+            cloud_backend = getattr(settings, 'CLOUD_STORAGE_BACKEND', 'LOCAL').upper()
+            
+            # If no cloud storage is configured, keep local
+            if cloud_backend == 'LOCAL':
+                logger.debug(f"Cloud storage not enabled, keeping recording {recording.id} in local storage")
+                return True  # Not an error, just not configured
+            
+            # Check if cloud storage service is available
+            if not storage_service.use_aws and not storage_service.use_gcp:
+                logger.debug(f"Cloud storage service not available, keeping recording {recording.id} in local storage")
                 return True  # Not an error, just not available
             
             # Verify file exists and is accessible before upload
@@ -770,7 +774,7 @@ class RTSPRecordingManager:
             
             # Get file info
             file_size = os.path.getsize(local_file_path)
-            logger.info(f"🚀 Uploading completed recording {recording.id} to GCP storage... ({storage_service._format_size(file_size)})")
+            logger.info(f"🚀 Uploading completed recording {recording.id} to {cloud_backend} storage... ({storage_service._format_size(file_size)})")
             
             # Add retry mechanism for upload
             max_retries = 3
@@ -778,7 +782,7 @@ class RTSPRecordingManager:
             
             for attempt in range(max_retries):
                 try:
-                    # Upload file to GCP storage
+                    # Upload file to cloud storage (AWS S3 or GCP)
                     storage_result = storage_service.upload_recording(
                         local_file_path=local_file_path,
                         recording_id=str(recording.id),
@@ -786,10 +790,10 @@ class RTSPRecordingManager:
                         filename=os.path.basename(local_file_path)
                     )
                     
-                    if storage_result[0]:  # storage_path is not None
+                    if storage_result and storage_result[0]:  # storage_path is not None
                         storage_path, storage_type = storage_result
                         
-                        # Update recording with GCP storage info
+                        # Update recording with cloud storage info
                         recording.file_path = storage_path
                         recording.storage_type = storage_type
                         
@@ -797,16 +801,22 @@ class RTSPRecordingManager:
                         recording.updated_at = timezone.now()
                         recording.save(update_fields=['file_path', 'storage_type', 'updated_at'])
                         
-                        logger.info(f"✅ Recording {recording.id} successfully uploaded to GCP: {storage_path}")
+                        logger.info(f"✅ Recording {recording.id} successfully uploaded to {storage_type.upper()}: {storage_path}")
                         upload_success = True
                         
-                        # Optionally clean up local file after successful GCP upload
-                        if getattr(settings, 'GCP_STORAGE_CLEANUP_LOCAL', True):
+                        # Clean up local file after successful upload based on storage type
+                        cleanup_enabled = False
+                        if storage_type == 'aws' and getattr(settings, 'AWS_STORAGE_CLEANUP_LOCAL', True):
+                            cleanup_enabled = True
+                        elif storage_type == 'gcp' and getattr(settings, 'GCP_STORAGE_CLEANUP_LOCAL', True):
+                            cleanup_enabled = True
+                        
+                        if cleanup_enabled:
                             try:
-                                # Wait a moment to ensure GCP upload is fully processed
+                                # Wait a moment to ensure cloud upload is fully processed
                                 time.sleep(2)
                                 os.remove(local_file_path)
-                                logger.info(f"🗑️ Local file cleaned up after GCP upload: {local_file_path}")
+                                logger.info(f"🗑️ Local file cleaned up after {storage_type.upper()} upload: {local_file_path}")
                             except Exception as cleanup_error:
                                 logger.warning(f"Failed to cleanup local file {local_file_path}: {str(cleanup_error)}")
                                 # Don't fail the upload just because cleanup failed
@@ -831,9 +841,9 @@ class RTSPRecordingManager:
                     else:
                         logger.error(f"All upload attempts failed for recording {recording.id}: {str(upload_error)}")
                         break
-                
+                        
         except Exception as e:
-            logger.error(f"Critical error uploading recording {recording.id} to GCP: {str(e)}")
+            logger.error(f"Critical error uploading recording {recording.id} to cloud storage: {str(e)}")
             upload_success = False
         
         # If upload failed, ensure recording stays in local storage for background sync
