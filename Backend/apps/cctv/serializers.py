@@ -144,6 +144,7 @@ class RecordingSerializer(serializers.ModelSerializer):
     absolute_file_path = serializers.ReadOnlyField()
     duration_seconds = serializers.SerializerMethodField()
     file_size_mb = serializers.SerializerMethodField()
+    recorded_by_client_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Recording
@@ -172,6 +173,12 @@ class RecordingSerializer(serializers.ModelSerializer):
         if obj.file_size:
             return round(obj.file_size / (1024 * 1024), 2)
         return 0
+    
+    def get_recorded_by_client_name(self, obj):
+        """Get the name of the local recording client"""
+        if obj.recorded_by_client:
+            return obj.recorded_by_client.name
+        return None
     
     def create(self, validated_data):
         """Set the created_by field to the current user"""
