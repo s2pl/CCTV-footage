@@ -307,7 +307,7 @@ GCP_SIGNED_URL_EXPIRATION = 120      # Default expiration time for signed URLs (
 GCP_SIGNED_URL_VERSION = 'v4'        # Use v4 signing for better compatibility
 
 # CORS settings - Enhanced for mobile and web support
-CORS_ALLOW_ALL_ORIGINS = True if DEBUG else False  # Only allow all origins in development
+CORS_ALLOW_ALL_ORIGINS = True  # Only allow all origins in development
 
 # Always allow credentials for authentication
 CORS_ALLOW_CREDENTIALS = True
