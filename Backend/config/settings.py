@@ -577,6 +577,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://rstpfe.storage.googleapis.com",
     "http://13.233.78.193",  # Added as per instruction
     "https://cctv.suvidhaen.com",
+    "https://cctvapi.suvidhaen.com",
 ]
 CSRF_COOKIE_SECURE = False  # Set to False in development if not using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access to the cookie
