@@ -50,11 +50,13 @@ ALLOWED_HOSTS = [
     "cctvapi.suvidhaen.com",
     "13.233.78.193",  # Added as per instruction
     "cctv.suvidhaen.com",
+    "13.233.150.167",
+    
 ]
 
 
 
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://cctv.suvidhaen.com')
 
 
 
@@ -305,7 +307,7 @@ GCP_SIGNED_URL_EXPIRATION = 120      # Default expiration time for signed URLs (
 GCP_SIGNED_URL_VERSION = 'v4'        # Use v4 signing for better compatibility
 
 # CORS settings - Enhanced for mobile and web support
-CORS_ALLOW_ALL_ORIGINS = True if DEBUG else False  # Only allow all origins in development
+CORS_ALLOW_ALL_ORIGINS = True  # Only allow all origins in development
 
 # Always allow credentials for authentication
 CORS_ALLOW_CREDENTIALS = True
@@ -332,7 +334,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://35.200.133.126:8000",
 
     "http://13.233.78.193",  # Added as per instruction
+    "http://13.233.150.167",
     "https://cctv.suvidhaen.com",
+    "https://cctvapi.suvidhaen.com",
     
     FRONTEND_URL,  # Using the FRONTEND_URL from environment variables
 ]
@@ -576,9 +580,11 @@ CSRF_TRUSTED_ORIGINS = [
     "https://rstpfe.storage.googleapis.com",
     "http://rstpfe.storage.googleapis.com",
     "http://13.233.78.193",  # Added as per instruction
+    "http://13.233.150.167",
     "https://cctv.suvidhaen.com",
+    "https://cctvapi.suvidhaen.com",
 ]
-CSRF_COOKIE_SECURE = False  # Set to False in development if not using HTTPS
+CSRF_COOKIE_SECURE = True  # Set to False in development if not using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access to the cookie
 CSRF_USE_SESSIONS = False  # Store CSRF token in cookie instead of session
 
