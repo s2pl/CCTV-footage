@@ -57,6 +57,50 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def safe_save_camera(camera, update_fields=None):
+    """
+    Safely save camera updates, handling cases where the camera may have been deleted
+    or modified by another process.
+    
+    Args:
+        camera: Camera model instance
+        update_fields: List of fields to update (optional)
+    
+    Returns:
+        bool: True if save was successful, False otherwise
+    """
+    try:
+        # Check if camera still exists in database
+        camera_id = camera.id
+        if not Camera.objects.filter(id=camera_id).exists():
+            logger.warning(f"Camera {camera_id} no longer exists in database, skipping save")
+            return False
+        
+        # Refresh from database to ensure we have the latest version
+        camera.refresh_from_db()
+        
+        # Save with update_fields if provided, otherwise save all fields
+        if update_fields:
+            camera.save(update_fields=update_fields)
+        else:
+            camera.save()
+        
+        return True
+    except Camera.DoesNotExist:
+        logger.warning(f"Camera {camera.id} no longer exists in database, skipping save")
+        return False
+    except Exception as e:
+        # Handle "Save with update_fields did not affect any rows" error
+        error_msg = str(e)
+        if "did not affect any rows" in error_msg or "does not exist" in error_msg.lower():
+            logger.warning(f"Camera {camera.id} was modified/deleted by another process: {error_msg}")
+            return False
+        else:
+            # For other errors, log as error but don't raise
+            logger.error(f"Error saving camera {camera.id}: {error_msg}")
+            return False
+
+
 class RTSPStreamManager:
     """Manages RTSP streams for cameras"""
     
@@ -131,14 +175,14 @@ class RTSPStreamManager:
             camera.is_online = True
             camera.is_streaming = True
             camera.last_seen = timezone.now()
-            camera.save(update_fields=['status', 'is_online', 'is_streaming', 'last_seen'])
+            safe_save_camera(camera, update_fields=['status', 'is_online', 'is_streaming', 'last_seen'])
             
             return self.active_streams[stream_key]
             
         except Exception as e:
             logger.error(f"Error starting stream for camera {camera.name}: {str(e)}")
             camera.status = 'error'
-            camera.save()
+            safe_save_camera(camera)
             raise
     
     def _update_stream_frames(self, stream_key):
@@ -169,7 +213,7 @@ class RTSPStreamManager:
                     # Update camera last seen every 30 seconds
                     if frame_count % 750 == 0:  # ~30 seconds at 25fps
                         camera.last_seen = timezone.now()
-                        camera.save(update_fields=['last_seen'])
+                        safe_save_camera(camera, update_fields=['last_seen'])
                         
                     # Control frame rate to prevent overwhelming
                     time.sleep(0.04)  # Target ~25 FPS
@@ -181,7 +225,7 @@ class RTSPStreamManager:
                     if consecutive_failures >= max_failures:
                         logger.error(f"Too many consecutive failures for camera {camera.name}, stopping stream")
                         camera.status = 'error'
-                        camera.save(update_fields=['status'])
+                        safe_save_camera(camera, update_fields=['status'])
                         break
                     
                     time.sleep(0.5)  # Wait before retrying
@@ -194,7 +238,7 @@ class RTSPStreamManager:
                     logger.error(f"Too many consecutive errors for camera {camera.name}, stopping stream")
                     camera.status = 'error'
                     camera.is_streaming = False
-                    camera.save(update_fields=['status', 'is_streaming'])
+                    safe_save_camera(camera, update_fields=['status', 'is_streaming'])
                     break
                     
                 time.sleep(1)  # Wait longer after errors
@@ -219,8 +263,8 @@ class RTSPStreamManager:
             try:
                 camera = stream_info['camera']
                 camera.is_streaming = False
-                camera.save(update_fields=['is_streaming'])
-                logger.info(f"Updated camera {camera.name} is_streaming=False")
+                if safe_save_camera(camera, update_fields=['is_streaming']):
+                    logger.info(f"Updated camera {camera.name} is_streaming=False")
             except Exception as e:
                 logger.error(f"Error updating camera streaming status: {str(e)}")
             
@@ -275,7 +319,7 @@ class RTSPStreamManager:
             if not connection_ok:
                 logger.error(f"Cannot recover stream - connection test failed: {connection_msg}")
                 camera.status = 'error'
-                camera.save(update_fields=['status'])
+                safe_save_camera(camera, update_fields=['status'])
                 return None
             
             # Wait a moment before retrying
@@ -286,7 +330,7 @@ class RTSPStreamManager:
             if stream_info:
                 logger.info(f"Successfully recovered stream for camera {camera.name}")
                 camera.status = 'active'
-                camera.save(update_fields=['status'])
+                safe_save_camera(camera, update_fields=['status'])
             
             return stream_info
             
@@ -295,7 +339,7 @@ class RTSPStreamManager:
             try:
                 camera = Camera.objects.get(id=camera_id)
                 camera.status = 'error'
-                camera.save(update_fields=['status'])
+                safe_save_camera(camera, update_fields=['status'])
             except:
                 pass
             return None
