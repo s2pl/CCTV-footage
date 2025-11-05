@@ -221,20 +221,56 @@ class RecordingScheduler:
             recording_name = f"SCHEDULED - {schedule.name} - {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
             
             # Start recording
-            recording = recording_manager.start_recording(
-                camera=schedule.camera,
-                duration_minutes=duration_minutes,
-                recording_name=recording_name,
-                user=schedule.created_by,
-                is_scheduled=True,
-                schedule_id=schedule.id
-            )
-            
-            # Link recording to schedule
-            recording.schedule = schedule
-            recording.save()
-            
-            logger.info(f"Started scheduled recording: {recording_name}")
+            try:
+                recording = recording_manager.start_recording(
+                    camera=schedule.camera,
+                    duration_minutes=duration_minutes,
+                    recording_name=recording_name,
+                    user=schedule.created_by,
+                    is_scheduled=True,
+                    schedule_id=schedule.id
+                )
+                
+                # Link recording to schedule
+                recording.schedule = schedule
+                recording.save()
+                
+                logger.info(f"✅ Started scheduled recording: {recording_name} for camera '{schedule.camera.name}'")
+            except Exception as recording_error:
+                # Mark recording as failed if it was created
+                error_msg = str(recording_error)
+                logger.error(f"❌ Failed to start scheduled recording '{recording_name}' for camera '{schedule.camera.name}': {error_msg}")
+                
+                # Try to find and update the recording record if it was created
+                try:
+                    from .models import Recording
+                    # Find the most recent recording for this schedule that might have been created
+                    failed_recording = Recording.objects.filter(
+                        schedule=schedule,
+                        status='recording',
+                        name=recording_name
+                    ).order_by('-created_at').first()
+                    
+                    if failed_recording:
+                        failed_recording.status = 'failed'
+                        failed_recording.error_message = error_msg
+                        failed_recording.save()
+                        logger.info(f"Marked recording {failed_recording.id} as failed due to connection error")
+                except Exception as update_error:
+                    logger.error(f"Error updating failed recording record: {str(update_error)}")
+                
+                # Update camera status if connection failed
+                try:
+                    if "Cannot connect" in error_msg or "Connection" in error_msg or "timeout" in error_msg.lower():
+                        schedule.camera.status = 'error'
+                        schedule.camera.is_online = False
+                        schedule.camera.save(update_fields=['status', 'is_online'])
+                        logger.warning(f"Updated camera '{schedule.camera.name}' status to 'error' due to connection failure")
+                except Exception as status_error:
+                    logger.error(f"Error updating camera status: {str(status_error)}")
+                
+                # Re-raise to be caught by outer exception handler
+                raise
             
             # For 'once' type schedules, mark as inactive after starting recording
             if schedule.schedule_type == 'once':
@@ -270,6 +306,8 @@ class RecordingScheduler:
             recording.schedule = schedule
             recording.save()
             
+            logger.info(f"✅ Started continuous recording chunk: {recording_name} for camera '{schedule.camera.name}'")
+            
             # Schedule the next continuous recording
             next_start = timezone.now() + timedelta(minutes=chunk_duration)
             next_job_id = f"continuous_{schedule.id}_{int(timezone.now().timestamp())}"
@@ -282,10 +320,19 @@ class RecordingScheduler:
                 name=f"Next continuous recording: {schedule.name}"
             )
             
-            logger.info(f"Started continuous recording chunk: {recording_name}")
-            
         except Exception as e:
-            logger.error(f"Error starting continuous recording for {schedule.name}: {str(e)}")
+            error_msg = str(e)
+            logger.error(f"❌ Error starting continuous recording for '{schedule.name}': {error_msg}")
+            
+            # Update camera status if connection failed
+            try:
+                if "Cannot connect" in error_msg or "Connection" in error_msg or "timeout" in error_msg.lower():
+                    schedule.camera.status = 'error'
+                    schedule.camera.is_online = False
+                    schedule.camera.save(update_fields=['status', 'is_online'])
+                    logger.warning(f"Updated camera '{schedule.camera.name}' status to 'error' due to connection failure")
+            except Exception as status_error:
+                logger.error(f"Error updating camera status: {str(status_error)}")
     
     def remove_schedule(self, schedule_id):
         """Remove a recording schedule"""

@@ -142,14 +142,25 @@ def configure_video_capture(cap, rtsp_url):
         logger.error(f"Error configuring video capture: {str(e)}")
         return False
 
-def test_camera_connection_robust(rtsp_url, max_attempts=None):
-    """Test camera connection with multiple attempts and better error handling"""
+def test_camera_connection_robust(rtsp_url, max_attempts=None, verify_frames=3):
+    """
+    Test camera connection with multiple attempts and better error handling.
+    Verifies that multiple frames can be read to ensure the camera is actually working.
+    
+    Args:
+        rtsp_url: RTSP URL to test
+        max_attempts: Maximum number of connection attempts (default: from STREAM_SETTINGS)
+        verify_frames: Number of frames to successfully read to verify camera is working (default: 3)
+    
+    Returns:
+        tuple: (success: bool, message: str)
+    """
     if max_attempts is None:
         max_attempts = STREAM_SETTINGS['retry_attempts']
     
     for attempt in range(max_attempts):
         try:
-            cap = cv2.VideoCapture(rtsp_url)
+            cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
             
             if not cap.isOpened():
                 logger.warning(f"Attempt {attempt + 1}: Failed to open capture")
@@ -159,15 +170,42 @@ def test_camera_connection_robust(rtsp_url, max_attempts=None):
             # Configure capture
             configure_video_capture(cap, rtsp_url)
             
-            # Test frame reading
-            ret, frame = cap.read()
+            # Test frame reading - read multiple frames to ensure stability
+            frames_read = 0
+            consecutive_failures = 0
+            max_frame_reads = max(verify_frames, 5)  # Read at least 5 frames or verify_frames
+            
+            for frame_test in range(max_frame_reads):
+                ret, frame = cap.read()
+                
+                if ret and frame is not None:
+                    frames_read += 1
+                    consecutive_failures = 0
+                    
+                    # Verify frame is valid (has proper dimensions)
+                    if len(frame.shape) >= 2 and frame.shape[0] > 0 and frame.shape[1] > 0:
+                        continue
+                    else:
+                        logger.warning(f"Attempt {attempt + 1}: Invalid frame dimensions on frame {frame_test + 1}")
+                        consecutive_failures += 1
+                else:
+                    consecutive_failures += 1
+                    if consecutive_failures >= 3:
+                        logger.warning(f"Attempt {attempt + 1}: Too many consecutive frame read failures")
+                        break
+                
+                # Small delay between frame reads
+                import time
+                time.sleep(0.1)
+            
             cap.release()
             
-            if ret and frame is not None:
-                logger.info(f"Camera connection successful on attempt {attempt + 1}")
-                return True, "Connection successful"
+            # Require at least verify_frames successful frames
+            if frames_read >= verify_frames:
+                logger.info(f"Camera connection successful on attempt {attempt + 1} - read {frames_read} frames")
+                return True, f"Connection successful - verified {frames_read} frames"
             else:
-                logger.warning(f"Attempt {attempt + 1}: No frames received")
+                logger.warning(f"Attempt {attempt + 1}: Only read {frames_read} frames (need {verify_frames})")
                 
         except Exception as e:
             logger.warning(f"Attempt {attempt + 1}: Connection error - {str(e)}")
@@ -177,7 +215,7 @@ def test_camera_connection_robust(rtsp_url, max_attempts=None):
             import time
             time.sleep(STREAM_SETTINGS['retry_delay'])
     
-    return False, f"Failed to connect after {max_attempts} attempts"
+    return False, f"Failed to connect after {max_attempts} attempts or could not read {verify_frames} frames"
 
 def get_frame_with_timeout(cap, timeout_ms=1000):
     """Get a frame with timeout to prevent hanging"""
@@ -347,70 +385,73 @@ def test_codec_compatibility(width, height, fps=25, test_frame=None):
     os.environ['OPENCV_LOG_LEVEL'] = 'ERROR'  # Less strict than FATAL
     os.environ['FFMPEG_LOGLEVEL'] = 'error'   # Less strict than quiet
     
-    try:
-        for codec, extension, description in RECORDING_CODECS:
-            try:
-                # Create temporary file
-                with tempfile.NamedTemporaryFile(suffix=extension, delete=False) as temp_file:
-                    temp_path = temp_file.name
-                
-                # Test the codec with better error handling
-                fourcc = cv2.VideoWriter_fourcc(*codec)
-                writer = None
-                success = False
-                
+    # Suppress OpenCV/FFMPEG warnings during codec testing
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        
+        try:
+            for codec, extension, description in RECORDING_CODECS:
                 try:
-                    writer = cv2.VideoWriter(temp_path, fourcc, fps, (width, height))
+                    # Create temporary file
+                    with tempfile.NamedTemporaryFile(suffix=extension, delete=False) as temp_file:
+                        temp_path = temp_file.name
                     
-                    if writer.isOpened():
-                        # Try to write a few frames
-                        success = True
-                        for i in range(3):
-                            try:
-                                writer.write(test_frame)
-                            except Exception:
-                                success = False
-                                break
+                    # Test the codec with better error handling
+                    fourcc = cv2.VideoWriter_fourcc(*codec)
+                    writer = None
+                    success = False
+                    
+                    try:
+                        writer = cv2.VideoWriter(temp_path, fourcc, fps, (width, height))
                         
-                        # Check if file was created (be more lenient with size requirements)
-                        if success and os.path.exists(temp_path) and os.path.getsize(temp_path) > 50:
-                            working_codecs.append((codec, extension, description))
-                            logger.info(f"✅ Codec {codec} works: {description}")
+                        if writer.isOpened():
+                            # Try to write a few frames
+                            success = True
+                            for i in range(3):
+                                try:
+                                    writer.write(test_frame)
+                                except Exception:
+                                    success = False
+                                    break
+                            
+                            # Check if file was created (be more lenient with size requirements)
+                            if success and os.path.exists(temp_path) and os.path.getsize(temp_path) > 50:
+                                working_codecs.append((codec, extension, description))
+                                logger.info(f"✅ Codec {codec} works: {description}")
+                            else:
+                                logger.debug(f"❌ Codec {codec} test failed: file not created or too small")
                         else:
-                            logger.debug(f"❌ Codec {codec} test failed: file not created or too small")
-                    else:
-                        logger.debug(f"❌ Codec {codec} failed to open writer")
+                            logger.debug(f"❌ Codec {codec} failed to open writer")
+                            
+                    except Exception as e:
+                        logger.debug(f"❌ Codec {codec} failed with error: {str(e)}")
+                    finally:
+                        if writer is not None:
+                            try:
+                                writer.release()
+                            except:
+                                pass
+                    
+                    # Clean up
+                    try:
+                        if os.path.exists(temp_path):
+                            os.remove(temp_path)
+                    except:
+                        pass
                         
                 except Exception as e:
                     logger.debug(f"❌ Codec {codec} failed with error: {str(e)}")
-                finally:
-                    if writer is not None:
-                        try:
-                            writer.release()
-                        except:
-                            pass
-                
-                # Clean up
-                try:
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
-                except:
-                    pass
-                    
-            except Exception as e:
-                logger.debug(f"❌ Codec {codec} failed with error: {str(e)}")
-    
-    finally:
-        # Restore original log levels
-        os.environ['OPENCV_LOG_LEVEL'] = old_log_level
-        os.environ['FFMPEG_LOGLEVEL'] = old_ffmpeg_log_level
+        finally:
+            # Restore original log levels
+            os.environ['OPENCV_LOG_LEVEL'] = old_log_level
+            os.environ['FFMPEG_LOGLEVEL'] = old_ffmpeg_log_level
     
     # If no codecs work, add a basic fallback
     if not working_codecs:
-        logger.warning("No codecs passed testing, adding basic fallback")
+        logger.debug("No codecs passed testing, adding basic fallback (this is normal on some systems)")
         working_codecs = [('MJPG', '.avi', 'Motion JPEG AVI - Basic fallback')]
     
-    logger.info(f"Found {len(working_codecs)} working codecs out of {len(RECORDING_CODECS)} tested")
+    logger.info(f"Found {len(working_codecs)} working codec(s) out of {len(RECORDING_CODECS)} tested")
     return working_codecs
 
 def get_cached_working_codecs(width, height, fps=25, test_frame=None):

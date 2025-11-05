@@ -232,9 +232,14 @@ class AWSS3StorageService:
             return ""
         
         try:
+            # Skip .tmp files - they're temporary and shouldn't be accessed
+            if file_path.endswith('.tmp'):
+                logger.debug(f"Skipping .tmp file URL generation: {file_path}")
+                return ""
+            
             # Check if file exists first
             if not self.file_exists(file_path):
-                logger.error(f"File does not exist in AWS S3: {file_path}")
+                logger.warning(f"File does not exist in AWS S3: {file_path}")
                 return ""
             
             if signed:

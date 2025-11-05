@@ -459,14 +459,31 @@ class RTSPRecordingManager:
             # Check OpenCV compatibility on first use
             check_opencv_compatibility()
             
-            # Test connection first
-            connection_ok, connection_msg = test_camera_connection_robust(camera.rtsp_url)
+            # Determine which RTSP URL to use for recording
+            # Try main stream first, fallback to sub stream if main fails
+            rtsp_url = camera.rtsp_url
+            logger.info(f"📹 Starting recording for camera '{camera.name}' using RTSP URL: {rtsp_url}")
+            
+            # Test connection first with main stream
+            connection_ok, connection_msg = test_camera_connection_robust(rtsp_url)
+            
+            # If main stream fails and sub stream is available, try sub stream
+            if not connection_ok and camera.rtsp_url_sub:
+                logger.warning(f"⚠️ Main stream connection failed for camera '{camera.name}'. Trying sub stream...")
+                rtsp_url = camera.rtsp_url_sub
+                connection_ok, connection_msg = test_camera_connection_robust(rtsp_url)
+                if connection_ok:
+                    logger.info(f"✅ Sub stream connection successful for camera '{camera.name}'")
+            
             if not connection_ok:
-                raise Exception(f"Cannot connect to camera for recording: {connection_msg}")
+                error_msg = f"Cannot connect to camera '{camera.name}' for recording: {connection_msg}. Tried URL: {rtsp_url}"
+                logger.error(f"❌ {error_msg}")
+                raise Exception(error_msg)
             
             # Setup video capture with optimized options
-            cap = cv2.VideoCapture(camera.rtsp_url, cv2.CAP_FFMPEG)
-            configure_video_capture(cap, camera.rtsp_url)
+            logger.info(f"📹 Connecting to camera '{camera.name}' at: {rtsp_url}")
+            cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+            configure_video_capture(cap, rtsp_url)
             
             # Additional optimizations for video recording
             try:
@@ -488,7 +505,7 @@ class RTSPRecordingManager:
             ret, test_frame = cap.read()
             if not ret or test_frame is None:
                 cap.release()
-                raise Exception(f"Cannot read frames from camera stream: {camera.rtsp_url}")
+                raise Exception(f"Cannot read frames from camera '{camera.name}' stream: {rtsp_url}")
             
             # Get video properties
             fps = int(cap.get(cv2.CAP_PROP_FPS))

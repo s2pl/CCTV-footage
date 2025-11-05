@@ -626,7 +626,7 @@ def multi_camera_stream_dashboard(request):
 def register_camera(request, camera_data: CameraRegistrationSchema):
     """Register/setup a new camera with comprehensive options (Admin/Superadmin only)"""
     from .serializers import CameraRegistrationSerializer
-    from .streaming import test_camera_connection
+    from .streaming import test_camera_connection, safe_save_camera
     from django.utils import timezone
     from datetime import timedelta
     
@@ -660,11 +660,12 @@ def register_camera(request, camera_data: CameraRegistrationSchema):
         
         data = serializer.validated_data
         
-        # Test connection if requested
+        # Test connection if requested - verify camera is actually working
         if data.get('test_connection', True):
+            logger.info(f"Testing connection for camera: {data['rtsp_url']}")
             success, message = test_camera_connection(data['rtsp_url'])
             if not success:
-                raise HttpError(400, f'Camera connection failed: {message}')
+                raise HttpError(400, f'Camera connection test failed: {message}. Please verify the RTSP URL is correct and the camera is accessible.')
         
         # Prepare camera data for creation
         camera_creation_data = {
@@ -705,7 +706,7 @@ def register_camera(request, camera_data: CameraRegistrationSchema):
         if password == '':
             password = None
         
-        # Create camera directly instead of using serializer for now
+        # Create camera with initial status 'inactive' - will be set to 'active' if streaming works
         camera = Camera.objects.create(
             name=camera_creation_data['name'],
             description=camera_creation_data.get('description', ''),
@@ -717,7 +718,7 @@ def register_camera(request, camera_data: CameraRegistrationSchema):
             rtsp_url_sub=camera_creation_data.get('rtsp_url_sub', ''),
             rtsp_path=camera_creation_data.get('rtsp_path'),
             camera_type=camera_creation_data.get('camera_type', 'rtsp'),
-            status='active',  # Set status as active for newly registered cameras
+            status='inactive',  # Start as inactive, will be set to active if streaming works
             location=camera_creation_data.get('location', ''),
             auto_record=camera_creation_data.get('auto_record', False),
             record_quality=camera_creation_data.get('record_quality', 'medium'),
@@ -726,21 +727,77 @@ def register_camera(request, camera_data: CameraRegistrationSchema):
             created_by=current_user
         )
         
-        # Mark the camera as online
-        camera.mark_as_online()
+        # Verify streaming actually works before marking camera as active
+        streaming_works = False
+        stream_error = None
         
-        # Auto-start streaming for new cameras to ensure is_streaming = true
         try:
             from .streaming import stream_manager
-            logger.info(f"Auto-starting stream for new camera: {camera.name}")
-            stream_manager.start_stream(camera, 'main')
-            logger.info(f"Stream started successfully for camera: {camera.name}")
+            logger.info(f"Verifying streaming for newly registered camera: {camera.name}")
+            
+            # Attempt to start stream
+            stream_info = stream_manager.start_stream(camera, 'main')
+            
+            if stream_info:
+                # Give stream a moment to stabilize
+                import time
+                time.sleep(1)
+                
+                # Check if stream is actually providing frames
+                frame = stream_manager.get_frame(camera.id, 'main')
+                
+                if frame is not None and frame.size > 0:
+                    streaming_works = True
+                    logger.info(f"Stream verification successful for camera: {camera.name}")
+                    
+                    # Mark camera as active and online
+                    camera.status = 'active'
+                    camera.is_online = True
+                    camera.is_streaming = True
+                    camera.last_seen = timezone.now()
+                    safe_save_camera(camera, update_fields=['status', 'is_online', 'is_streaming', 'last_seen'])
+                    
+                    logger.info(f"Camera {camera.name} successfully registered and streaming")
+                else:
+                    stream_error = "Stream started but no frames received"
+                    logger.warning(f"Stream verification failed for camera {camera.name}: {stream_error}")
+                    # Stop the failed stream
+                    try:
+                        stream_manager.stop_stream(camera.id, 'main')
+                    except:
+                        pass
+            else:
+                stream_error = "Failed to start stream"
+                logger.warning(f"Stream start failed for camera {camera.name}: {stream_error}")
+                
         except Exception as e:
-            logger.warning(f"Failed to auto-start stream for camera {camera.name}: {str(e)}")
-            # Don't fail registration if streaming fails
+            stream_error = str(e)
+            logger.error(f"Error verifying stream for camera {camera.name}: {stream_error}")
+            # Stop stream if it was partially started
+            try:
+                from .streaming import stream_manager
+                stream_manager.stop_stream(camera.id, 'main')
+            except:
+                pass
+        
+        # If streaming failed, set appropriate status
+        if not streaming_works:
+            camera.status = 'error'
+            camera.is_online = False
+            camera.is_streaming = False
+            safe_save_camera(camera, update_fields=['status', 'is_online', 'is_streaming'])
+            
+            # Include warning in response but don't fail registration
+            logger.warning(f"Camera {camera.name} registered but streaming verification failed: {stream_error}")
+        
+        # Build response message based on streaming status
+        if streaming_works:
+            message = 'Camera registered and streaming successfully'
+        else:
+            message = f'Camera registered but streaming verification failed: {stream_error if stream_error else "Unknown error"}. Camera status set to "error".'
         
         response_data = {
-            'message': 'Camera registered successfully',
+            'message': message,
             'camera': {
                 'id': str(camera.id),
                 'name': camera.name,
@@ -758,9 +815,15 @@ def register_camera(request, camera_data: CameraRegistrationSchema):
                 'record_quality': camera.record_quality,
                 'max_recording_hours': camera.max_recording_hours,
                 'is_public': camera.is_public,
-                'is_online': camera.is_online
+                'is_online': camera.is_online,
+                'is_streaming': camera.is_streaming
             }
         }
+        
+        # Add warning if streaming failed
+        if not streaming_works:
+            response_data['warning'] = stream_error or 'Streaming verification failed'
+            response_data['status'] = 'partial_success'
         
         # Start test recording if requested
         if data.get('start_recording', False):

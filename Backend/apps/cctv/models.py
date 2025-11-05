@@ -419,6 +419,10 @@ class Recording(models.Model):
         """Get the URL to access the recording file"""
         if not self.file_path:
             return ""
+        
+        # Skip .tmp files - they're temporary and shouldn't be accessed
+        if self.file_path.endswith('.tmp'):
+            return ""
             
         try:
             from .storage_service import storage_service
